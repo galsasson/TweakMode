@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<project name="TemplateMode" default="install" basedir="./">
+    <description>Template for extending Java Mode in Processing 2.0</description>
+
+    <!-- name of your mode package (will be used as dir name) -->
+    <property name="lib.name" 	value="Mode Template" />
+
+    <!-- version -->
+    <property name="release" 	value="0.1" />
+
+    <!-- java version -->
+    <property name="java.target.version" value="1.6" />
+
+    <!-- location of processing jars (core.jar, pde.jar, ..) -->
+    <property name="processing.classes.core" location="../p5-git/processing/core/library/" />
+    <property name="processing.classes.pde" location="../p5-git/processing/app/" />
+    
+    <!-- folder to install modes in (probably a folder called "modes" inside your sketchbook folder) -->
+    <property name="processing.modes" location="/Users/mlg/Documents/Processing/modes"/>
+
+    <!-- path to your processing executable. -->
+    <property name="processing.executable" location="../p5-git/processing/build/macosx/work/Processing.app/Contents/MacOS/JavaApplicationStub"/>
+
+
+
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - - -->
+    <property name="src" 		value="src" />
+    <property name="build" 		value="build" />
+    <property name="bin" 		value="bin" />
+    <property name="dist" 		value="dist" />
+
+    <path id="library-classpath">
+        <fileset dir="${processing.classes.core}" >
+            <include name="*.jar" />
+        </fileset>
+        
+        <fileset dir="${processing.classes.pde}" >
+            <include name="*.jar" />
+        </fileset>
+
+        <fileset dir="lib" >
+            <include name="*.jar" />
+        </fileset>
+    </path>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - -
+        BUILD
+    - - - - - - - - - - - - - - - - - - - - - - - -->
+    <target name="build">
+        <propertyfile file="build.number" /> <!-- create the build.number file if it doesn't exist -->
+        <buildnumber file="build.number" />
+
+        <mkdir dir="${build}" />
+
+        <javac srcdir="${src}" destdir="${build}" source="${java.target.version}" includeantruntime="false">
+            <classpath>
+                <path refid="library-classpath"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - -
+        PACKAGE
+    - - - - - - - - - - - - - - - - - - - - - - - -->
+    <target name="package" depends="build">
+        <delete dir="${dist}" />
+        <property name="bundle" value="${dist}/${lib.name}"/>
+        <mkdir dir="${bundle}" />
+        <mkdir dir="${bundle}/mode" />
+
+        <jar jarfile="${bundle}/mode/${lib.name}.jar" basedir="build"/>
+		<!--zip destfile="${dist}/mode/${lib.name}.jar" excludes="**/*.MF">
+		    <zipgroupfileset dir="lib" includes="*.jar" />
+		</zip-->
+
+        <copy todir="${bundle}">
+            <fileset dir="resources/" />
+        </copy>
+
+        <copy todir="${bundle}/mode">
+            <fileset dir="lib/" />
+        </copy>
+
+        <replaceregexp file="${bundle}/mode.properties" flags="g"
+                               match="@@version@@" replace="${build.number}" />
+        <replaceregexp file="${bundle}/mode.properties" flags="g"
+                               match="@@pretty-version@@" replace="${release}" />
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - -
+        INSTALL
+    - - - - - - - - - - - - - - - - - - - - - - - -->
+    <target name="install" depends="package" >
+        <delete dir="${processing.modes}/${lib.name}" />
+
+        <copy todir="${processing.modes}/">
+            <fileset dir="${dist}" />
+        </copy>
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - -
+        CLEAN
+    - - - - - - - - - - - - - - - - - - - - - - - -->
+    <target name="clean" >
+        <delete dir="${build}" />
+        <delete dir="${dist}" />
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - - - - - -
+        RUN
+    - - - - - - - - - - - - - - - - - - - - - - - -->
+    <target name="run" depends="install">
+        <exec executable="${processing.executable}" spawn="false" />
+    </target>
+</project>
