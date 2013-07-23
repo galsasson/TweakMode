@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<project name="TemplateMode" default="install" basedir="./">
-    <description>Template for extending Java Mode in Processing 2.0</description>
+<project name="NumberSenseMode" default="install" basedir="./">
+    <description>NumberSense Mode for Processing 2.0</description>
 
     <!-- name of your mode package (will be used as dir name) -->
-    <property name="lib.name" 	value="Mode Template" />
+    <property name="lib.name" 	value="NumberSenseMode" />
 
     <!-- version -->
     <property name="release" 	value="0.1" />
@@ -12,14 +12,14 @@
     <property name="java.target.version" value="1.6" />
 
     <!-- location of processing jars (core.jar, pde.jar, ..) -->
-    <property name="processing.classes.core" location="../p5-git/processing/core/library/" />
-    <property name="processing.classes.pde" location="../p5-git/processing/app/" />
+    <property name="processing.classes.core" location="../processing/core/library/" />
+    <property name="processing.classes.pde" location="../processing/app/" />
     
     <!-- folder to install modes in (probably a folder called "modes" inside your sketchbook folder) -->
-    <property name="processing.modes" location="/Users/mlg/Documents/Processing/modes"/>
+    <property name="processing.modes" location="/Users/gal/Documents/Processing/modes"/>
 
     <!-- path to your processing executable. -->
-    <property name="processing.executable" location="../p5-git/processing/build/macosx/work/Processing.app/Contents/MacOS/JavaApplicationStub"/>
+    <property name="processing.executable" location="../processing/build/macosx/work/Processing.app/Contents/MacOS/JavaApplicationStub"/>
 
 
 
