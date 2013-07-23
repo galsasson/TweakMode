@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="build" path="src"/>
+	<classpathentry kind="var" path="JRE_LIB" rootpath="JRE_SRCROOT" sourcepath="JRE_SRC"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/core.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/gluegen-rt-natives-linux-amd64.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/gluegen-rt-natives-linux-armv6hf.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/gluegen-rt-natives-linux-i586.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/gluegen-rt-natives-macosx-universal.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/gluegen-rt-natives-windows-amd64.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/gluegen-rt-natives-windows-i586.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/gluegen-rt.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all-natives-linux-amd64.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all-natives-linux-armv6hf.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all-natives-linux-i586.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all-natives-macosx-universal.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all-natives-windows-amd64.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all-natives-windows-i586.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/app/pde.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
