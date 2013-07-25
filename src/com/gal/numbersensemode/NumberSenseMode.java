@@ -129,7 +129,7 @@ public class NumberSenseMode extends JavaMode {
     	
     	for (int i=0; i<code.length; i++)
     	{
-    		String c = new String(code[i].getProgram());
+    		String c = new String(code[i].getSavedProgram());
     		Pattern p = Pattern.compile("(\\d+\\.*\\d*)");
     		Matcher m = p.matcher(c);
         
@@ -145,7 +145,7 @@ public class NumberSenseMode extends JavaMode {
     			}
         
     			c = c.replaceFirst(m.group(0), name);
-    			//code[i].setProgram(c);
+    			code[i].setProgram(c);
     			numCount++;
     		}
     	}
@@ -164,7 +164,7 @@ public class NumberSenseMode extends JavaMode {
     		c += numbers[i].type + " " + numbers[i].name + " = " + numbers[i].value + ";\n";
     	}
     	
-    	//code[0].setProgram(c);
+    	code[0].setProgram(c);
     	
     	System.out.println("Modified code:");
     	for (int i=0; i<code.length; i++)
