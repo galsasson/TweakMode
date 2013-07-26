@@ -17,6 +17,6 @@
 	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all-natives-windows-amd64.jar"/>
 	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all-natives-windows-i586.jar"/>
 	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/core/library/jogl-all.jar"/>
-	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/app/pde.jar"/>
+	<classpathentry kind="lib" path="/Users/gal/itp/GSoC/processing/app/pde.jar" sourcepath="/processing-app"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
