@@ -130,45 +130,17 @@ public class NumberSenseMode extends JavaMode {
     	Number[] numbers = getAllNumbers(sketch);
     	for (int tab=0; tab<code.length; tab++)
     	{
+    		int charInc = 0;
 			String c = code[tab].getSavedProgram();
-    		for (int i=0; i<numbers.length; i++)
+			for (Number n : numbers)
     		{
-    			if (numbers[i].tabIndex == tab)
-    			{
-    				System.out.println(numbers[i].toString());
-    				// only replace if it is really a number (not part of a variable name)
-    				int foundAt = 0;
-    				
-    				while((foundAt = c.indexOf(numbers[i].value, foundAt)) != -1)
-    				{
-    					if ((c.charAt(foundAt-1) >= 'A' &&		// var name below
-    						 c.charAt(foundAt-1) <= 'Z') ||
-    						(c.charAt(foundAt-1) >= 'a' &&
-    						 c.charAt(foundAt-1) <= 'z') ||
-     						(c.charAt(foundAt-1) >= '0' &&
-     						 c.charAt(foundAt-1) <= '9') ||
-    						 c.charAt(foundAt-1) == '_' ||
-    						 c.charAt(foundAt+1) == 'x' ||		// hex below (0x...)
-    						 c.charAt(foundAt+1) == 'X' ||
-    						 isInsideString(foundAt, c))		// part of a string
-    						 
-    					{
-    						// didn't qualify, keep looking
-    						foundAt++;
-    						continue;
-    					}
-    					else
-    					{
-    						// we found our number, replace with variable name
-    						String sub = c.substring(foundAt, c.length());
-    						sub = sub.replaceFirst(numbers[i].value, numbers[i].name);
-    						c = c.substring(0, foundAt) + sub;
-    						break;
-    					}
-    				}
-    				
-//					c = c.replaceFirst(numbers[i].value, numbers[i].name);
-    			}
+    			// handle only numbers is the current tab
+    			if (n.tabIndex != tab)
+    				continue;
+    			
+    			// replace number value with a variable
+    			c = replaceString(c, n.startChar + charInc, n.endChar + charInc, n.name);
+    			charInc += n.name.length() - n.value.length();
     		}
 			code[tab].setProgram(c);
     	}
@@ -290,4 +262,9 @@ public class NumberSenseMode extends JavaMode {
     	
     	return false;
     }
+    
+	public String replaceString(String str, int start, int end, String put)
+	{
+		return str.substring(0, start) + put + str.substring(end, str.length());
+	}
 }
