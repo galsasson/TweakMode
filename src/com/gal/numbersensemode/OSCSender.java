@@ -6,13 +6,13 @@ import com.illposed.osc.*;
 
 public class OSCSender {
 	
-	public static void sendFloat(String varName, float val) throws Exception
+	public static void sendFloat(int index, float val) throws Exception
 	{
 		OSCPortOut sender = new OSCPortOut();
 		ArrayList<Object> args = new ArrayList<Object>();
-		args.add(new String(varName));
+		args.add(new Integer(index));
 		args.add(new Float(val));
-		OSCMessage msg = new OSCMessage("/numberchange", args);
+		OSCMessage msg = new OSCMessage("/ns_change_float", args);
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {
@@ -20,13 +20,13 @@ public class OSCSender {
 		 }
 	}
 	
-	public static void sendInt(String varName, int val) throws Exception
+	public static void sendInt(int index, int val) throws Exception
 	{
 		OSCPortOut sender = new OSCPortOut();
 		ArrayList<Object> args = new ArrayList<Object>();
-		args.add(new String(varName));
+		args.add(new Integer(index));
 		args.add(new Integer(val));
-		OSCMessage msg = new OSCMessage("/numberchange", args);
+		OSCMessage msg = new OSCMessage("/ns_change_int", args);
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {

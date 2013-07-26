@@ -1,0 +1,8 @@
+
+
+Known Bugs: 26.07.2013 (Gal Sasson)
+
+1. cannot maintain horizontal scroll when dragging a number point.
+2. global variables in a sketch are not set. variables set only on setup(), and setup happens after those variables are set.
+3. user must click 'stop' to go back to edit mode (closing sketch window does not work like 'stop')
+  

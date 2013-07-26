@@ -104,17 +104,19 @@ public class NumberSenseTextArea extends JEditTextArea {
 	
 	public void startInteractiveMode()
 	{
+		this.editable = false;
 		removeAllListeners();
 		
 		// add our private interaction listeners
 		nspainter.addMouseListener(nspainter);
 		nspainter.addMouseMotionListener(nspainter);
-		nspainter.setRunMode(true);
+		nspainter.startInterativeMode();
 		painter.setCursor(new Cursor(Cursor.HAND_CURSOR));
 	}
 	
 	public void stopInteractiveMode()
 	{
+		this.editable = true;
 		removeAllListeners();
 		
 		// add the original text-edit listeners
@@ -127,7 +129,7 @@ public class NumberSenseTextArea extends JEditTextArea {
 		for (MouseMotionListener mml : prevMMotionListeners)
 			painter.addMouseMotionListener(mml);		
 		
-		nspainter.setRunMode(false);
+		nspainter.stopInteractiveMode();
 		painter.setCursor(new Cursor(Cursor.TEXT_CURSOR));
 	}
 	

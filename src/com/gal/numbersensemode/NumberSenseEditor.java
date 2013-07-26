@@ -77,9 +77,14 @@ public class NumberSenseEditor extends JavaEditor {
 	 * Override creation of the default textarea.
 	 */
 	protected JEditTextArea createTextArea() {
-		System.out.println("Editor.createTextArea!!!!!!!!!!!!!!!!");
 		nsTextArea = new NumberSenseTextArea(this, new PdeTextAreaDefaults(mode));
 		return nsTextArea;
+	}
+	
+	public void handleStop()
+	{
+		super.handleStop();
+		nsmode.handleStop();
 	}
 
 	public JMenu buildModeMenu() {

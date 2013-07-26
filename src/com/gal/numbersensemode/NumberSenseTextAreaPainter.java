@@ -53,15 +53,18 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	protected NumberSenseTextArea ta;
 	protected int horizontalAdjustment = 0;
 	
-	public boolean runMode = false;
+	public boolean interactiveMode = false;
 	public ArrayList<Number> numbers = null;
 	public Number mouseNumber = null;
 	
-	public NumberSenseTextAreaPainter(NumberSenseTextArea textArea, TextAreaDefaults defaults) {
+	private final Object mutex = new Object();
+	
+	public NumberSenseTextAreaPainter(NumberSenseTextArea textArea, TextAreaDefaults defaults) 
+	{
 		super((JEditTextArea)textArea, defaults);
 		System.out.println("NumberSenseTextAreaPainter constructor");
 		ta = textArea;
-		runMode = false;
+		interactiveMode = false;
 	}
 	
 	/**
@@ -70,9 +73,10 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	*/
 	@Override
 	public void paint(Graphics gfx) {
+		synchronized(mutex) {
 		super.paint(gfx);
 
-		if (runMode && numbers!=null)
+		if (interactiveMode && numbers!=null)
 		{
 			// enable anti-aliasing
 			Graphics2D g2d = (Graphics2D)gfx;
@@ -93,13 +97,20 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 				n.setWidth(end - x);
 				n.draw(g2d);
 			}
-		}		
+		}
+		}
 	}
 		  
-	
-	public void setRunMode(boolean run)
+	public void startInterativeMode()
 	{
-		runMode = run;
+		interactiveMode = true;
+		repaint();
+	}
+	
+	public void stopInteractiveMode()
+	{
+		interactiveMode = false;
+		repaint();
 	}
 	
 	// Update the interface
@@ -112,8 +123,10 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	
 	public void initInterfacePositions()
 	{
+		synchronized(mutex) {
 		SketchCode[] code = ta.editor.getSketch().getCode();
 
+		int prevScroll = ta.getScrollPosition();
 		String prevText = ta.getText();
 		
 		for (int tab=0; tab<code.length; tab++)
@@ -134,6 +147,10 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 		}
 		
 		ta.setText(prevText);
+		ta.scrollTo(prevScroll, 0);
+		}
+		
+		repaint();
 	}
 
 	/**
@@ -191,13 +208,15 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 			n.newEndChar = n.endChar + charInc;
 		}
 		
+		synchronized(mutex) {
 		/* by default setText will scroll all the way to the end
-		 * save this to maintain scroll position
+		 * remember current scroll position
 		 * TODO: this doesn't work yet for horizontal scroll */
 		int scrollLine = ta.getScrollPosition();
 		int scrollHor = ta.getHorizontalOffset();	
 		ta.setText(code);
 		ta.scrollTo(scrollLine, scrollHor);
+		}
 	}
 	
 	public String replaceString(String str, int start, int end, String put)
@@ -207,14 +226,15 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 
 	public void oscSendNewValue(Number n)
 	{
+		int index = n.varIndex;
 		try {
 			if (n.type == "int") {
 				int val = Integer.parseInt(n.newValue);
-				OSCSender.sendInt(n.name, val);
+				OSCSender.sendInt(index, val);
 			}
 			else {
 				float val = Float.parseFloat(n.newValue);
-				OSCSender.sendFloat(n.name, val);
+				OSCSender.sendFloat(index, val);
 			}
 		} catch (Exception e) { System.out.println("error sending OSC message!"); }
 	}
@@ -225,6 +245,13 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 		if (mouseNumber != null)
 		{
 			mouseNumber.resetBallPos();
+			
+			// send OSC message - value changed.
+			oscSendNewValue(mouseNumber);
+
+			// update code text with the new value
+			updateCodeText();			
+
 			mouseNumber = null;
 			repaint();
 		}

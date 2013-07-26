@@ -11,6 +11,7 @@ public class Number {
 	public String name;
 	public String value;
 	public String newValue;
+	public int varIndex;
 	int tabIndex;
 	int startChar, endChar, line;
 	int newStartChar, newEndChar;
@@ -20,10 +21,11 @@ public class Number {
 	int ballX, ballY;
 	int anchorX, anchorY;
 	
-	public Number(String t, String n, String v, int ti, int l, int sc, int ec)
+	public Number(String t, String n, int vi, String v, int ti, int l, int sc, int ec)
 	{
 		type = t;
 		name = n;
+		varIndex = vi;
 		value = v;
 		tabIndex = ti;
 		line = l;
@@ -63,6 +65,19 @@ public class Number {
 		ballX = bx - screenAnchorX;
 		ballY = by - screenAnchorY;
 		
+		updateValue();	
+	}
+	
+	public void resetBallPos()
+	{
+		ballX = 0;
+		ballY = 0;
+		
+		updateValue();
+	}
+	
+	public void updateValue()
+	{
 		if (type == "int") {
 			int val = Integer.parseInt(value) - ballY;
 			newValue = Integer.toString(val);
@@ -73,12 +88,6 @@ public class Number {
 		}
 	}
 		
-	public void resetBallPos()
-	{
-		ballX = 0;
-		ballY = 0;
-	}
-	
 	public void setPos(int nx, int ny)
 	{
 		x = nx;
