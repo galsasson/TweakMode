@@ -2,6 +2,7 @@ package com.gal.numbersensemode;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -127,7 +128,7 @@ public class NumberSenseMode extends JavaMode {
     		return false;
     	
     	// modify the code below, replace all numbers with their var names
-    	Number[] numbers = getAllNumbers(sketch);
+    	ArrayList<Number> numbers = getAllNumbers(sketch);
     	for (int tab=0; tab<code.length; tab++)
     	{
     		int charInc = 0;
@@ -155,9 +156,9 @@ public class NumberSenseMode extends JavaMode {
 		 	 "/****************************/\n" +
     		 "\n";
 
-    	for (int i=0; i<numbers.length; i++)
+    	for (Number n : numbers)
     	{
-    		header += numbers[i].type + " " + numbers[i].name + " = " + numbers[i].value + ";\n";
+    		header += n.type + " " + n.name + " = " + n.value + ";\n";
     	}
     	
     	header += "\n\n\n\n\n";
@@ -171,47 +172,24 @@ public class NumberSenseMode extends JavaMode {
     		System.out.println(code[i].getProgram());
     	}
 
-    	
-    		 
     	return true;
     }
     
-    public Number[] getAllNumbers(Sketch sketch)
+    public ArrayList<Number> getAllNumbers(Sketch sketch)
     {
     	SketchCode[] code = sketch.getCode();
     	int numCount = 0;
     	
-    	// first, count how many numbers we want to replace
-    	for (int i=0; i<code.length; i++)
-    	{
-    		String c = new String(code[i].getSavedProgram());
-    		Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.*\\d*");
-    		Matcher m = p.matcher(c);
-        
-    		while (m.find()) {
-    			// special case for ignoring (0x...)
-    			if (c.charAt(m.end()) == 'x' ||
-    				c.charAt(m.end()) == 'X')
-    				continue;
-    			
-    			// special case for ignoring string ("")
-    			if (isInsideString(m.start(), c))
-    				continue;
-    			
-    			numCount++;
-    		}
-    	}
+    	ArrayList<Number> numbers = new ArrayList<Number>();
 
-    	Number[] numbers = new Number[numCount];
-    	
-    	// for every number found, save its type (int/float), name, value and position.
-    	numCount = 0;
+    	/* for every number found: 
+    	 * save its type (int/float), name, value and position in code.
+    	 */
     	String varName = "numbersense_var";
     	for (int i=0; i<code.length; i++)
     	{
     		String c = new String(code[i].getSavedProgram());
-//    		Pattern p = Pattern.compile("(\\d+\\.*\\d*)");
-    		Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.*\\d*");
+    		Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.?\\d*");
     		Matcher m = p.matcher(c);
         
     		while (m.find())
@@ -221,7 +199,7 @@ public class NumberSenseMode extends JavaMode {
     				c.charAt(m.end()) == 'X')
     				continue;
     			
-    			// special case for ignoring string ("")
+    			// special case for ignoring number inside a string ("")
     			if (isInsideString(m.start(), c))
     				continue;
     			
@@ -233,7 +211,7 @@ public class NumberSenseMode extends JavaMode {
     				type = "float";
     			}
     			
-    			numbers[numCount] = new Number(type, name, value, i, line, m.start()+1, m.end());
+    			numbers.add(new Number(type, name, value, i, line, m.start()+1, m.end()));
     			numCount++;
     		}
     	}

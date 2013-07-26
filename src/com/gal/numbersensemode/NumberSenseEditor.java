@@ -119,14 +119,8 @@ public class NumberSenseEditor extends JavaEditor {
 		nsTextArea.stopInteractiveMode();
 	}
 	
-	public void updateInterface(Number[] numbers)
+	public void updateInterface(ArrayList<Number> numbers)
 	{
-		ArrayList<Number> curNumbers = new ArrayList<Number>();
-		
-		for (int i=0; i<numbers.length; i++)
-		{
-			curNumbers.add(numbers[i]);
-		}
-		nsTextArea.updateInterface(curNumbers);
+		nsTextArea.updateInterface(numbers);
 	}
 }
