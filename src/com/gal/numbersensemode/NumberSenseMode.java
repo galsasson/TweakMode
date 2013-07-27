@@ -234,6 +234,12 @@ public class NumberSenseMode extends JavaMode {
     	}
     }
     
+    /**
+     * Get a list of all the numbers from a sketch
+     * @param sketch: the sketch to take the numbers from
+     * @return
+     * ArrayList<Number> of all the numbers
+     */
     public ArrayList<Number> getAllNumbers(Sketch sketch)
     {
     	SketchCode[] code = sketch.getCode();
@@ -263,6 +269,10 @@ public class NumberSenseMode extends JavaMode {
     			if (isInsideString(m.start(), c))
     				continue;
     			
+    			// beware of the global assignment (bug from 26.07.2013)
+    			if (isGlobal(m.start(), c))
+    				continue;
+    			
     			int line = countLines(c.substring(0, m.start())) - 1;			// zero based
     			String value = m.group(0).substring(1, m.group(0).length());
     			String name;
@@ -289,17 +299,51 @@ public class NumberSenseMode extends JavaMode {
     	return lines.length;
     }
     
-    private boolean isInsideString(int pos, String str)
+    /**
+     * Are we inside a string? (TODO: handle comments)
+     * @param pos
+     * position in the code
+     * @param code
+     * the code
+     * @return
+     */
+    private boolean isInsideString(int pos, String code)
     {
-    	int quoteNum = 0;
+    	int quoteNum = 0;	// count '"'
     	
-    	for (int c = pos; c>=0 && str.charAt(c) != '\n'; c--)
+    	for (int c = pos; c>=0 && code.charAt(c) != '\n'; c--)
     	{
-    		if (str.charAt(c) == '"')
+    		if (code.charAt(c) == '"')
     			quoteNum++;
     	}
     	
     	if (quoteNum%2 == 1)
+    		return true;
+    	
+    	return false;
+    }
+    
+    /**
+     * Is this a global position?
+     * @param pos position
+     * @param code code
+     * @return
+     * true if the position 'pos' is in global scope in the code 'code'
+     */
+    private boolean isGlobal(int pos, String code)
+    {
+    	int cbOpenNum = 0;	// count '{'
+    	int cbCloseNum = 0;	// count '}'
+    	
+    	for (int c=pos; c>=0; c--)
+    	{
+    		if (code.charAt(c) == '{')
+    			cbOpenNum++;
+    		else if (code.charAt(c) == '}')
+    			cbCloseNum++;
+    	}
+    	
+    	if (cbOpenNum == cbCloseNum)
     		return true;
     	
     	return false;
