@@ -51,6 +51,8 @@ public class NumberSenseTextArea extends JEditTextArea {
 	ComponentListener[] prevCompListeners;
 	MouseListener[] prevMouseListeners;
 	MouseMotionListener[] prevMMotionListeners;
+	
+	boolean interactiveMode;
 
 	public NumberSenseTextArea(Editor editor, TextAreaDefaults defaults) {
 		super(defaults);
@@ -80,6 +82,8 @@ public class NumberSenseTextArea extends JEditTextArea {
 		prevMouseListeners = mouseListeners;
 		prevMMotionListeners = mouseMotionListeners;
 		
+		interactiveMode = false;
+		
 		add(CENTER, painter);
 	}
 	
@@ -104,6 +108,12 @@ public class NumberSenseTextArea extends JEditTextArea {
 	
 	public void startInteractiveMode()
 	{
+		// ignore if we are already in interactiveMode
+		if (interactiveMode)
+			return;
+		
+		interactiveMode = true;
+		
 		this.editable = false;
 		removeAllListeners();
 		
@@ -116,6 +126,10 @@ public class NumberSenseTextArea extends JEditTextArea {
 	
 	public void stopInteractiveMode()
 	{
+		// ignore if we are not in interactive mode
+		if (!interactiveMode)
+			return;
+		
 		this.editable = true;
 		removeAllListeners();
 		
@@ -131,6 +145,8 @@ public class NumberSenseTextArea extends JEditTextArea {
 		
 		nspainter.stopInteractiveMode();
 		painter.setCursor(new Cursor(Cursor.TEXT_CURSOR));
+		
+		interactiveMode = false;
 	}
 	
 	public void updateInterface(ArrayList<Number> numbers)

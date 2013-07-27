@@ -100,10 +100,14 @@ public class NumberSenseMode extends JavaMode {
 
     @Override
     public Runner handleRun(Sketch sketch, RunnerListener listener) throws SketchException {
+    	boolean launchInteractive;
     	System.out.println("I'm handling run now!!!????");
     	
+    	/* parse the saved sketch to get all numbers */
     	ArrayList<Number> numbers = getAllNumbers(sketch);
-    	automateSketch(sketch, numbers);
+    	
+    	/* add our code to the sketch */
+    	launchInteractive = automateSketch(sketch, numbers);
     	
         JavaBuild build = new JavaBuild(sketch);
         String appletClassName = build.build(false);
@@ -115,11 +119,15 @@ public class NumberSenseMode extends JavaMode {
             }
           }).start();
           
-          // annoying bug: editor shows the modified code
-          revertSketch(sketch);
+          if (launchInteractive)
+          {
+        	  // annoying bug: editor shows the modified code
+        	  revertSketch(sketch);
           
-          editor.updateInterface(numbers);
-          editor.startInteractiveMode();    	
+        	  editor.updateInterface(numbers);
+        	  editor.startInteractiveMode();
+          }
+          
           return runtime;
         }
         
@@ -131,13 +139,25 @@ public class NumberSenseMode extends JavaMode {
     	editor.stopInteractiveMode();
     }
     
+    /**
+     * Replace all numbers with variables and add code to initialize these variables and handle OSC messages.
+     * @param sketch
+     * 	the sketch to work on
+     * @param numbers
+     * 	list of numbers to replace in this sketch
+     * @return
+     *  true on success
+     */
     private boolean automateSketch(Sketch sketch, ArrayList<Number> numbers)
     {
     	SketchCode[] code = sketch.getCode();
-    	
+
     	if (code.length<1)
     		return false;
-    	
+
+    	if (numbers.size() == 0)
+    		return false;
+
     	/* modify the code below, replace all numbers with their variable names */
     	// loop through all tabs in the current sketch
     	for (int tab=0; tab<code.length; tab++)
@@ -208,9 +228,9 @@ public class NumberSenseMode extends JavaMode {
     	String addToSetup = "\n  numbersense_initAllVars();\n  numbersense_initOSC();\n\n";
     	int pos = getSetupStart(c);
     	c = replaceString(c, pos, pos, addToSetup);    	
-    	
+
     	code[0].setProgram(header + c);
-    	
+
     	/* print modified code */
     	/*
     	System.out.println("Modified code:");
@@ -223,7 +243,7 @@ public class NumberSenseMode extends JavaMode {
 
     	return true;
     }
-    
+
     public void revertSketch(Sketch sketch)
     {
     	SketchCode[] code = sketch.getCode();
@@ -233,9 +253,9 @@ public class NumberSenseMode extends JavaMode {
     		c.setProgram(c.getSavedProgram());
     	}
     }
-    
+
     /**
-     * Get a list of all the numbers from a sketch
+     * Get a list of all the numbers in this sketch
      * @param sketch: the sketch to take the numbers from
      * @return
      * ArrayList<Number> of all the numbers
@@ -245,10 +265,10 @@ public class NumberSenseMode extends JavaMode {
     	SketchCode[] code = sketch.getCode();
     	int intVarCount = 0;
     	int floatVarCount = 0;
-    	
+
     	ArrayList<Number> numbers = new ArrayList<Number>();
 
-    	/* for every number found: 
+    	/* for every number found:
     	 * save its type (int/float), name, value and position in code.
     	 */
     	String varPrefix = "numbersense";
@@ -277,12 +297,12 @@ public class NumberSenseMode extends JavaMode {
     			String value = m.group(0).substring(1, m.group(0).length());
     			String name;
     			if (value.contains(".")) {
-    				// consider float
+    				// consider this as a float
         			name = varPrefix + "_float[" + floatVarCount +"]";
         			numbers.add(new Number("float", name, floatVarCount, value, i, line, m.start()+1, m.end()));
     				floatVarCount++;
     			} else {
-    				// consider int
+    				// consider this as an int
         			name = varPrefix + "_int[" + intVarCount +"]";
         			numbers.add(new Number("int", name, intVarCount, value, i, line, m.start()+1, m.end()));
     				intVarCount++;
@@ -300,7 +320,7 @@ public class NumberSenseMode extends JavaMode {
     }
     
     /**
-     * Are we inside a string? (TODO: handle comments)
+     * Are we inside a string? (TODO: ignore comments in the code)
      * @param pos
      * position in the code
      * @param code

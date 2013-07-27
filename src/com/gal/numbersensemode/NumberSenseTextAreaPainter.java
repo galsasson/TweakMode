@@ -57,7 +57,7 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	public ArrayList<Number> numbers = null;
 	public Number mouseNumber = null;
 	
-	private final Object mutex = new Object();
+	private final Object paintMutex = new Object();
 	
 	public NumberSenseTextAreaPainter(NumberSenseTextArea textArea, TextAreaDefaults defaults) 
 	{
@@ -73,32 +73,32 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	*/
 	@Override
 	public void paint(Graphics gfx) {
-		synchronized(mutex) {
-		super.paint(gfx);
+		synchronized(paintMutex) {
+			super.paint(gfx);
 
-		if (interactiveMode && numbers!=null)
-		{
-			// enable anti-aliasing
-			Graphics2D g2d = (Graphics2D)gfx;
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-	                			RenderingHints.VALUE_ANTIALIAS_ON);
-
-			for (Number n : numbers)
+			if (interactiveMode && numbers!=null)
 			{
-				// draw only interface points that belong to the current tab
-				if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
-					continue;
+				// enable anti-aliasing
+				Graphics2D g2d = (Graphics2D)gfx;
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+	                				RenderingHints.VALUE_ANTIALIAS_ON);
+
+				for (Number n : numbers)
+				{
+					// draw only interface points that belong to the current tab
+					if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
+						continue;
 				
-				int lineStartChar = ta.getLineStartOffset(n.line);
-				int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
-				int y = ta.lineToY(n.line) + fm.getHeight();
-				int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
-				n.setPos(x, y);
-				n.setWidth(end - x);
-				n.draw(g2d);
+					int lineStartChar = ta.getLineStartOffset(n.line);
+					int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
+					int y = ta.lineToY(n.line) + fm.getHeight();
+					int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
+					n.setPos(x, y);
+					n.setWidth(end - x);
+					n.draw(g2d);
+				}
 			}
-		}
-		}
+		}	// synchronized section end
 	}
 		  
 	public void startInterativeMode()
@@ -123,32 +123,33 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	
 	public void initInterfacePositions()
 	{
-		synchronized(mutex) {
-		SketchCode[] code = ta.editor.getSketch().getCode();
+		// synchronize this section (don't paint while we make changes to the text of the editor)
+		synchronized(paintMutex) {
+			SketchCode[] code = ta.editor.getSketch().getCode();
 
-		int prevScroll = ta.getScrollPosition();
-		String prevText = ta.getText();
+			int prevScroll = ta.getScrollPosition();
+			String prevText = ta.getText();
 		
-		for (int tab=0; tab<code.length; tab++)
-		{
-			ta.setText(code[tab].getSavedProgram());
-			for (Number n : numbers)
+			for (int tab=0; tab<code.length; tab++)
 			{
-				// handle only interface points in tab 'tab'.
-				if (n.tabIndex != tab)
-					continue;
+				ta.setText(code[tab].getSavedProgram());
+				for (Number n : numbers)
+				{
+					// handle only interface points in tab 'tab'.
+					if (n.tabIndex != tab)
+						continue;
 				
-				int lineStartChar = ta.getLineStartOffset(n.line);
-				int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
-				int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
-				int y = ta.lineToY(n.line) + fm.getHeight();
-				n.initInterface(x, y, end-x, 2);
+					int lineStartChar = ta.getLineStartOffset(n.line);
+					int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
+					int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
+					int y = ta.lineToY(n.line) + fm.getHeight();
+					n.initInterface(x, y, end-x, 2);
+				}
 			}
-		}
 		
-		ta.setText(prevText);
-		ta.scrollTo(prevScroll, 0);
-		}
+			ta.setText(prevText);
+			ta.scrollTo(prevScroll, 0);
+		}	// synchronized section end
 		
 		repaint();
 	}
@@ -208,14 +209,15 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 			n.newEndChar = n.endChar + charInc;
 		}
 		
-		synchronized(mutex) {
-		/* by default setText will scroll all the way to the end
-		 * remember current scroll position
-		 * TODO: this doesn't work yet for horizontal scroll */
-		int scrollLine = ta.getScrollPosition();
-		int scrollHor = ta.getHorizontalOffset();	
-		ta.setText(code);
-		ta.scrollTo(scrollLine, scrollHor);
+		// don't paint while we do the stuff below
+		synchronized(paintMutex) {
+			/* by default setText will scroll all the way to the end
+			 * remember current scroll position
+			 * TODO: this doesn't work yet for horizontal scroll */
+			int scrollLine = ta.getScrollPosition();
+			int scrollHor = ta.getHorizontalOffset();	
+			ta.setText(code);
+			ta.scrollTo(scrollLine, scrollHor);
 		}
 	}
 	
@@ -241,7 +243,6 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-//		System.out.println("mouse exited in: " + e.getX() + "x" + e.getY());
 		if (mouseNumber != null)
 		{
 			mouseNumber.resetBallPos();
@@ -259,7 +260,6 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-//		System.out.println("mouse pressed in: " + e.getX() + "x" + e.getY());
 		for (Number n : numbers)
 		{
 			if (n.pick(e.getX(), e.getY()))
@@ -273,7 +273,6 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-//		System.out.println("mouse released in: " + e.getX() + "x" + e.getY());
 		if (mouseNumber != null)
 			mouseNumber = null;
 	}
