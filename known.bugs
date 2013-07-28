@@ -14,3 +14,5 @@ todo:
 - better way to handle float/int detection (currently checking for the existance of '.')
 - find better scheme to handle increment/decrement of numbers (slow at the beginning and goes faster later) ** done using normal distribution
 - add +/- of how much was incremented.
+- add text input for number value
+- add space before and after the code
