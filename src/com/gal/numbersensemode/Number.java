@@ -160,6 +160,20 @@ public class Number {
 	
 	public boolean pick(int mx, int my)
 	{
+		return pickText(mx, my) || pickBall(mx, my);
+	}
+	
+	public boolean pickText(int mx, int my)
+	{
+		if (mx>x-2 && mx<x+width+2 && my>y-height && my<y) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean pickBall(int mx, int my)
+	{
 		int scrAnchorX = x + anchorX;
 		int scrAnchorY = y + anchorY;
 		
@@ -168,6 +182,6 @@ public class Number {
 			return true;
 		}
 		
-		return false;
+		return false;		
 	}
 }

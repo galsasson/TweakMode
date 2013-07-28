@@ -23,6 +23,7 @@
 package com.gal.numbersensemode;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -58,6 +59,8 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	public ArrayList<Number> numbers = null;
 	public Number mouseNumber = null;
 	
+	int cursorType;
+	
 	private final Object paintMutex = new Object();
 	
 	public NumberSenseTextAreaPainter(NumberSenseTextArea textArea, TextAreaDefaults defaults) 
@@ -66,6 +69,7 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 		System.out.println("NumberSenseTextAreaPainter constructor");
 		ta = textArea;
 		interactiveMode = false;
+		cursorType = Cursor.DEFAULT_CURSOR;
 	}
 	
 	/**
@@ -245,7 +249,11 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	public void mousePressed(MouseEvent e) {
 		for (Number n : numbers)
 		{
-			if (n.pick(e.getX(), e.getY()))
+			// skip numbers not in the current tag
+			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
+				continue;
+			
+			if (n.pickBall(e.getX(), e.getY()))
 			{
 				mouseNumber = n;
 				mouseNumber.setBallPos(e.getX(), e.getY());
@@ -264,8 +272,23 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+		for (Number n : numbers)
+		{
+			// skip numbers not in the current tag
+			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
+				continue;
+			
+			if (n.pick(e.getX(), e.getY()))
+			{
+				cursorType = Cursor.HAND_CURSOR;
+				setCursor(new Cursor(cursorType));
+				return;
+			}
+			if (cursorType == Cursor.HAND_CURSOR) {
+				cursorType = Cursor.DEFAULT_CURSOR;
+				setCursor(new Cursor(cursorType));
+			}
+		}	
 	}
 
 	@Override
