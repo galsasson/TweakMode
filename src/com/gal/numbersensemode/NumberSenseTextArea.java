@@ -121,7 +121,7 @@ public class NumberSenseTextArea extends JEditTextArea {
 		nspainter.addMouseListener(nspainter);
 		nspainter.addMouseMotionListener(nspainter);
 		nspainter.startInterativeMode();
-		painter.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		painter.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 	}
 	
 	public void stopInteractiveMode()

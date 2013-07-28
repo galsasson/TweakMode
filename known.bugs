@@ -1,4 +1,9 @@
 
+Known Bugs: 27.07.2013 (Gal Sasson)
+
+- when quiting a run, ask/update code.
+- limit the mapping of the drag strength in getStrength()
+
 Known Bugs: 26.07.2013 (Gal Sasson)
 
 - cannot maintain horizontal scroll when dragging a number point.
@@ -6,6 +11,6 @@ Known Bugs: 26.07.2013 (Gal Sasson)
 
 todo:
 
-- better way to handle float/int
-- find better scheme to handle increment/decrement of numbers (slow at the beginning and goes faster later)
-  
+- better way to handle float/int detection (currently checking for the existance of '.')
+- find better scheme to handle increment/decrement of numbers (slow at the beginning and goes faster later) ** done using normal distribution
+- add +/- of how much was incremented.

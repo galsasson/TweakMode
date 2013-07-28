@@ -29,6 +29,7 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.ImageObserver;
 import java.util.ArrayList;
 
 import javax.swing.text.BadLocationException;
@@ -72,33 +73,32 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	* @param gfx The graphics context
 	*/
 	@Override
-	public void paint(Graphics gfx) {
-		synchronized(paintMutex) {
-			super.paint(gfx);
+	public synchronized void paint(Graphics gfx) {
+		super.paint(gfx);
 
-			if (interactiveMode && numbers!=null)
+		if (interactiveMode && numbers!=null)
+		{
+			// enable anti-aliasing
+			Graphics2D g2d = (Graphics2D)gfx;
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                				RenderingHints.VALUE_ANTIALIAS_ON);
+
+			for (Number n : numbers)
 			{
-				// enable anti-aliasing
-				Graphics2D g2d = (Graphics2D)gfx;
-				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-	                				RenderingHints.VALUE_ANTIALIAS_ON);
-
-				for (Number n : numbers)
-				{
-					// draw only interface points that belong to the current tab
-					if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
-						continue;
+				// draw only interface points that belong to the current tab
+				if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
+					continue;
 				
-					int lineStartChar = ta.getLineStartOffset(n.line);
-					int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
-					int y = ta.lineToY(n.line) + fm.getHeight();
-					int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
-					n.setPos(x, y);
-					n.setWidth(end - x);
-					n.draw(g2d);
-				}
+				// update n position and width, and draw it
+				int lineStartChar = ta.getLineStartOffset(n.line);
+				int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
+				int y = ta.lineToY(n.line) + fm.getHeight() + 1;
+				int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
+				n.setPos(x, y);
+				n.setWidth(end - x);
+				n.draw(g2d, n==mouseNumber);
 			}
-		}	// synchronized section end
+		}
 	}
 		  
 	public void startInterativeMode()
@@ -118,76 +118,44 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	{
 		this.numbers = numbers;
 		
-		initInterfacePositions();		
+		initInterfacePositions();
+		repaint();		
 	}
-	
-	public void initInterfacePositions()
+
+	/**
+	* Initialize all the number changing interfaces.
+	* synchronize this method to prevent the execution of 'paint' in the middle.
+	* (don't paint while we make changes to the text of the editor)
+	*/
+	public synchronized void initInterfacePositions()
 	{
-		// synchronize this section (don't paint while we make changes to the text of the editor)
-		synchronized(paintMutex) {
-			SketchCode[] code = ta.editor.getSketch().getCode();
-
-			int prevScroll = ta.getScrollPosition();
-			String prevText = ta.getText();
+		SketchCode[] code = ta.editor.getSketch().getCode();
+		int prevScroll = ta.getScrollPosition();
+		String prevText = ta.getText();
 		
-			for (int tab=0; tab<code.length; tab++)
+		for (int tab=0; tab<code.length; tab++)
+		{
+			ta.setText(code[tab].getSavedProgram());
+			for (Number n : numbers)
 			{
-				ta.setText(code[tab].getSavedProgram());
-				for (Number n : numbers)
-				{
-					// handle only interface points in tab 'tab'.
-					if (n.tabIndex != tab)
-						continue;
+				// handle only interface points in tab 'tab'.
+				if (n.tabIndex != tab)
+					continue;
 				
-					int lineStartChar = ta.getLineStartOffset(n.line);
-					int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
-					int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
-					int y = ta.lineToY(n.line) + fm.getHeight();
-					n.initInterface(x, y, end-x, 2);
-				}
+				int lineStartChar = ta.getLineStartOffset(n.line);
+				int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
+				int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
+				int y = ta.lineToY(n.line) + fm.getHeight() + 1;
+				n.initInterface(x, y, end-x, fm.getHeight());
 			}
+		}
 		
-			ta.setText(prevText);
-			ta.scrollTo(prevScroll, 0);
-		}	// synchronized section end
-		
-		repaint();
+		ta.setText(prevText);
+		ta.scrollTo(prevScroll, 0);
 	}
 
 	/**
-	 * Trims out trailing white-spaces (to the right)
-	 * 
-	 * @param string
-	 * @return - String
-	 */
-	public String trimRight(String string) {
-		String newString = "";
-		for (int i = 0; i < string.length(); i++) {
-			if (string.charAt(i) != ' ') {
-				newString = string.substring(0, i) + string.trim();
-				break;
-			}
-		}
-		return newString;
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		if (mouseNumber != null) {
-			mouseNumber.setBallPos(e.getX(),  e.getY());
-			
-			// send OSC message - value changed.
-			oscSendNewValue(mouseNumber);
-
-			// update code text with the new value
-			updateCodeText();
-			
-			repaint();
-		}
-	}
-	
-	/**
-	 * Take the saved code and replace all numbers with their current values.
+	 * Take the saved code of the current tab and replace all numbers with their current values.
 	 * Update TextArea with the new code.
 	 */
 	public void updateCodeText()
@@ -210,7 +178,7 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 		}
 		
 		// don't paint while we do the stuff below
-		synchronized(paintMutex) {
+		synchronized(this) {
 			/* by default setText will scroll all the way to the end
 			 * remember current scroll position
 			 * TODO: this doesn't work yet for horizontal scroll */
@@ -241,6 +209,21 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 		} catch (Exception e) { System.out.println("error sending OSC message!"); }
 	}
 
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		if (mouseNumber != null) {
+			mouseNumber.setBallPos(e.getX(),  e.getY());
+			
+			// send OSC message - value changed.
+			oscSendNewValue(mouseNumber);
+
+			// update code text with the new value
+			updateCodeText();
+			
+			repaint();
+		}
+	}
+	
 	@Override
 	public void mouseExited(MouseEvent e) {
 		if (mouseNumber != null)
@@ -273,8 +256,10 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if (mouseNumber != null)
+		if (mouseNumber != null) {
 			mouseNumber = null;
+			repaint();
+		}
 	}
 
 	@Override

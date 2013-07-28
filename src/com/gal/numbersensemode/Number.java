@@ -20,6 +20,7 @@ public class Number {
 	int x, y, width, height;
 	int ballX, ballY;
 	int anchorX, anchorY;
+	double strength;
 	
 	public Number(String t, String n, int vi, String v, int ti, int l, int sc, int ec)
 	{
@@ -52,7 +53,9 @@ public class Number {
 		this.height = height;
 		
 		anchorX = width/2;
-		anchorY = 4;
+		anchorY = 2;
+		
+		strength = 0;
 		
 		resetBallPos();
 	}
@@ -78,14 +81,40 @@ public class Number {
 	
 	public void updateValue()
 	{
+		/* calculate strength of change based on the distance of the ball from its base. */ 
+		// map ballY form 0 - 100 to 4 - 1
+		strength = getStrength();
+		
 		if (type == "int") {
-			int val = Integer.parseInt(value) - ballY;
+			// how many pixels above/below the line
+			int val = Integer.parseInt(value) + (int)strength;		
 			newValue = Integer.toString(val);
 		}
 		else {
-			float val = Float.parseFloat(value) - ballY;
-			newValue = Float.toString(val);
+			float val = Float.parseFloat(value) + (float)strength;
+			newValue = String.format("%.03f", val);
 		}
+	}
+	
+	private double getStrength()
+	{
+		if (ballY == 0)
+			return 0;
+			
+		double amountX = 4 - (double)Math.abs(ballY)/100 * 2;
+		double amountY = getNormalDist(amountX) * 1000;
+		amountY = (double)Math.round(amountY * 1000) / 1000;
+		if (ballY>0)
+			amountY *= -1;
+		
+//		System.out.println("amountY = " + amountY);
+		return amountY;			
+	}
+	
+	private double getNormalDist(double _x)
+	{
+	  double tmp = -0.5 * Math.pow(_x, 2);
+	  return (1 / Math.sqrt(2*Math.PI)) * Math.exp(tmp);
 	}
 		
 	public void setPos(int nx, int ny)
@@ -100,19 +129,31 @@ public class Number {
 		anchorX = width/2;
 	}
 	
-	public void draw(Graphics2D g2d)
+	public void draw(Graphics2D g2d, boolean highlight)
 	{
 		AffineTransform prevTrans = g2d.getTransform();
 		g2d.translate(x, y);
 		
-		g2d.setColor(Color.RED);
-		
+		g2d.setColor(new Color(160, 20, 20));	// dark red
+				
 		// draw bottom line
-		g2d.fillRect(0, 0, width, height);
-		
-		// draw ball
+		g2d.fillRect(0, 0, width, 2);
+		// draw ball and line
 		g2d.fillArc(anchorX + ballX - 3, anchorY + ballY - 3, 6, 6, 0, 360);
-		g2d.drawLine(anchorX + ballX, anchorY + ballY, anchorX, anchorY);
+		
+		// don't draw vertical line on the text
+		if (ballY < -height)
+			g2d.drawLine(anchorX, anchorY-height, anchorX, anchorY+ballY);
+		else
+			g2d.drawLine(anchorX, anchorY, anchorX, anchorY+ballY);
+		// draw horizontal line
+		g2d.drawLine(anchorX, anchorY+ballY, anchorX+ballX, anchorY+ballY);
+		
+		// draw marker
+		if (highlight) {
+			g2d.setColor(new Color(228,240,91, 127));
+			g2d.fillRect(-2, -height, width+4, height);
+		}
 		
 		g2d.setTransform(prevTrans);
 	}

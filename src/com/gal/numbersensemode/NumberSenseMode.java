@@ -232,14 +232,14 @@ public class NumberSenseMode extends JavaMode {
     	code[0].setProgram(header + c);
 
     	/* print modified code */
-    	/*
+    	
     	System.out.println("Modified code:");
     	for (int i=0; i<code.length; i++)
     	{
     		System.out.println("file " + i + "\n=======");
     		System.out.println(code[i].getProgram());
     	}
-    	*/
+    	
 
     	return true;
     }
@@ -298,11 +298,15 @@ public class NumberSenseMode extends JavaMode {
     			String name;
     			if (value.contains(".")) {
     				// consider this as a float
+        			// format value
+//        			String fValue = String.format("%.03f", Float.parseFloat(value));
         			name = varPrefix + "_float[" + floatVarCount +"]";
         			numbers.add(new Number("float", name, floatVarCount, value, i, line, m.start()+1, m.end()));
     				floatVarCount++;
     			} else {
     				// consider this as an int
+        			// format value
+//        			String fValue = String.format("%d", Integer.parseInt(value));
         			name = varPrefix + "_int[" + intVarCount +"]";
         			numbers.add(new Number("int", name, intVarCount, value, i, line, m.start()+1, m.end()));
     				intVarCount++;
