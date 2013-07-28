@@ -1,5 +1,5 @@
 /*
-  Part of NumberSenseMode project (https://github.com/galsasson/NumberSenseMode)
+  Part of SketchTweakMode project (https://github.com/galsasson/SketchTweakMode)
   
   Under Google Summer of Code 2013 - 
   http://www.google-melange.com/gsoc/homepage/google/gsoc2013
@@ -20,7 +20,7 @@
   Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package com.gal.numbersensemode;
+package processing.mode.sketchtweak;
 
 import java.awt.Cursor;
 import java.awt.Font;
@@ -38,14 +38,14 @@ import processing.app.syntax.Token;
 import processing.app.syntax.TokenMarker;
 
 /**
- * Custom TextArea for NumberSenseMode
+ * Custom TextArea for STMode
  * 
  * @author Gal Sasson &lt;sasgal@gmail.com&gt;
  * 
  */
-public class NumberSenseTextArea extends JEditTextArea {
+public class STTextArea extends JEditTextArea {
 	public Editor editor;
-	NumberSenseTextAreaPainter nspainter;
+	STTextAreaPainter stpainter;
 	
 	// save input listeners to stop/start text edit
 	ComponentListener[] prevCompListeners;
@@ -54,9 +54,8 @@ public class NumberSenseTextArea extends JEditTextArea {
 	
 	boolean interactiveMode;
 
-	public NumberSenseTextArea(Editor editor, TextAreaDefaults defaults) {
+	public STTextArea(Editor editor, TextAreaDefaults defaults) {
 		super(defaults);
-		System.out.println("NumberSenseTextArea contructor");
 		this.editor = editor;
 		ComponentListener[] componentListeners = painter
 				.getComponentListeners();
@@ -66,8 +65,8 @@ public class NumberSenseTextArea extends JEditTextArea {
 
 		remove(painter);
 
-		nspainter = new NumberSenseTextAreaPainter(this, defaults);
-		painter = nspainter;
+		stpainter = new STTextAreaPainter(this, defaults);
+		painter = stpainter;
 
 		for (ComponentListener cl : componentListeners)
 			painter.addComponentListener(cl);
@@ -118,9 +117,9 @@ public class NumberSenseTextArea extends JEditTextArea {
 		removeAllListeners();
 		
 		// add our private interaction listeners
-		nspainter.addMouseListener(nspainter);
-		nspainter.addMouseMotionListener(nspainter);
-		nspainter.startInterativeMode();
+		stpainter.addMouseListener(stpainter);
+		stpainter.addMouseMotionListener(stpainter);
+		stpainter.startInterativeMode();
 		painter.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 	}
 	
@@ -143,7 +142,7 @@ public class NumberSenseTextArea extends JEditTextArea {
 		for (MouseMotionListener mml : prevMMotionListeners)
 			painter.addMouseMotionListener(mml);		
 		
-		nspainter.stopInteractiveMode();
+		stpainter.stopInteractiveMode();
 		painter.setCursor(new Cursor(Cursor.TEXT_CURSOR));
 		
 		interactiveMode = false;
@@ -151,7 +150,7 @@ public class NumberSenseTextArea extends JEditTextArea {
 	
 	public void updateInterface(ArrayList<Number> numbers)
 	{
-		nspainter.updateInterface(numbers);
+		stpainter.updateInterface(numbers);
 	}
 	
 }

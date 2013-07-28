@@ -1,4 +1,4 @@
-NumberSenseMode
+SketchTweakMode
 ===============
 
 A new mode for Processing's PDE that allows modifying fixed numbers in the code 

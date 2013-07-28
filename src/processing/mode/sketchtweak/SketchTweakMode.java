@@ -1,4 +1,4 @@
-package com.gal.numbersensemode;
+package processing.mode.sketchtweak;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,10 +22,10 @@ import processing.mode.java.runner.Runner;
  * Mode for enabling real-time modifications to numbers in the code.
  *
  */
-public class NumberSenseMode extends JavaMode {
-	NumberSenseEditor editor;
+public class SketchTweakMode extends JavaMode {
+	STEditor editor;
 	
-    public NumberSenseMode(Base base, File folder) {
+    public SketchTweakMode(Base base, File folder) {
         super(base, folder);
     }
 
@@ -37,7 +37,7 @@ public class NumberSenseMode extends JavaMode {
      */
     @Override
     public String getTitle() {
-        return "Number Sense";
+        return "Sketch Tweak";
     }
 
     /**
@@ -46,7 +46,7 @@ public class NumberSenseMode extends JavaMode {
     @Override
     public Editor createEditor(Base base, String path, EditorState state) {
     	System.out.println("Mode.createEditor!!!!!!!!!!!!!!!!!!!!");
-    	editor = new NumberSenseEditor(base, path, state, this);
+    	editor = new STEditor(base, path, state, this);
     	return (Editor)editor;
     }
 

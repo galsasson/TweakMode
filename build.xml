@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<project name="NumberSenseMode" default="install" basedir="./">
-    <description>NumberSense Mode for Processing 2.0</description>
+<project name="SketchTweakMode" default="install" basedir="./">
+    <description>Sketch Tweak Mode for Processing 2.0+</description>
 
     <!-- name of your mode package (will be used as dir name) -->
-    <property name="lib.name" 	value="NumberSenseMode" />
+    <property name="lib.name" 	value="SketchTweakMode" />
 
     <!-- version -->
     <property name="release" 	value="0.1" />

@@ -1,5 +1,5 @@
 /*
-  Part of NumberSenseMode project (https://github.com/galsasson/NumberSenseMode)
+  Part of SketchTweakMode project (https://github.com/galsasson/SketchTweakMode)
   
   Under Google Summer of Code 2013 - 
   http://www.google-melange.com/gsoc/homepage/google/gsoc2013
@@ -20,7 +20,7 @@
   Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package com.gal.numbersensemode;
+package processing.mode.sketchtweak;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -49,10 +49,10 @@ import processing.app.syntax.TokenMarker;
  * @author Gal Sasson &lt;sasgal@gmail.com&gt;
  * 
  */
-public class NumberSenseTextAreaPainter extends TextAreaPainter 
+public class STTextAreaPainter extends TextAreaPainter 
 	implements MouseListener, MouseMotionListener {
 
-	protected NumberSenseTextArea ta;
+	protected STTextArea ta;
 	protected int horizontalAdjustment = 0;
 	
 	public boolean interactiveMode = false;
@@ -63,10 +63,9 @@ public class NumberSenseTextAreaPainter extends TextAreaPainter
 	
 	private final Object paintMutex = new Object();
 	
-	public NumberSenseTextAreaPainter(NumberSenseTextArea textArea, TextAreaDefaults defaults) 
+	public STTextAreaPainter(STTextArea textArea, TextAreaDefaults defaults) 
 	{
 		super((JEditTextArea)textArea, defaults);
-		System.out.println("NumberSenseTextAreaPainter constructor");
 		ta = textArea;
 		interactiveMode = false;
 		cursorType = Cursor.DEFAULT_CURSOR;

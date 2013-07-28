@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>NumberSenseMode</name>
+	<name>SketchTweakMode</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -23,12 +23,12 @@
 		<link>
 			<name>build</name>
 			<type>2</type>
-			<location>/Users/gal/itp/GSoC/NumberSenseMode/build</location>
+			<location>/Users/gal/itp/GSoC/SketchTweakMode/build</location>
 		</link>
 		<link>
 			<name>src</name>
 			<type>2</type>
-			<location>/Users/gal/itp/GSoC/NumberSenseMode/src</location>
+			<location>/Users/gal/itp/GSoC/SketchTweakMode/src</location>
 		</link>
 	</linkedResources>
 </projectDescription>

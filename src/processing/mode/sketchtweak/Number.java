@@ -1,4 +1,4 @@
-package com.gal.numbersensemode;
+package processing.mode.sketchtweak;
 
 import java.awt.Color;
 import java.awt.Graphics;

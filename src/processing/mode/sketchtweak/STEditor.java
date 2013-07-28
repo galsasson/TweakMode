@@ -1,5 +1,5 @@
 /*
-  Part of NumberSenseMode project (https://github.com/galsasson/NumberSenseMode)
+  Part of SketchTweakMode project (https://github.com/galsasson/SketchTweakMode)
   
   Under Google Summer of Code 2013 - 
   http://www.google-melange.com/gsoc/homepage/google/gsoc2013
@@ -20,7 +20,7 @@
   Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package com.gal.numbersensemode;
+package processing.mode.sketchtweak;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -51,40 +51,40 @@ import processing.mode.java.JavaBuild;
 import processing.mode.java.JavaEditor;
 
 /**
- * Editor for NumberSenseMode
+ * Editor for STMode
  * 
  * @author Gal Sasson &lt;sasgal@gmail.com&gt;
  * 
  */
-public class NumberSenseEditor extends JavaEditor {
+public class STEditor extends JavaEditor {
 
-	NumberSenseMode nsmode;
+	SketchTweakMode stmode;
 	/**
 	 * Custom TextArea
 	 */
-	protected NumberSenseTextArea nsTextArea;
-	protected final NumberSenseEditor thisEditor;
+	protected STTextArea stTextArea;
+	protected final STEditor thisEditor;
 
-	protected NumberSenseEditor(Base base, String path, EditorState state,
+	protected STEditor(Base base, String path, EditorState state,
 			final Mode mode) {
 		super(base, path, state, mode);
 		thisEditor = this;
 
-		nsmode = (NumberSenseMode)mode;
+		stmode = (SketchTweakMode)mode;
 	}
 
 	/**
 	 * Override creation of the default textarea.
 	 */
 	protected JEditTextArea createTextArea() {
-		nsTextArea = new NumberSenseTextArea(this, new PdeTextAreaDefaults(mode));
-		return nsTextArea;
+		stTextArea = new STTextArea(this, new PdeTextAreaDefaults(mode));
+		return stTextArea;
 	}
 	
 	public void handleStop()
 	{
 		super.handleStop();
-		nsmode.handleStop();
+		stmode.handleStop();
 	}
 
 	public JMenu buildModeMenu() {
@@ -92,7 +92,7 @@ public class NumberSenseEditor extends JavaEditor {
 		// Enable Error Checker - CB
 		// Show/Hide Problem Window - CB
 		// Show Warnings - CB
-		JMenu menu = new JMenu("NumberSenseMode");
+		JMenu menu = new JMenu("SketchTweakMode");
 		JCheckBoxMenuItem item;
 
 		item = new JCheckBoxMenuItem("Just a dummy item");
@@ -116,16 +116,16 @@ public class NumberSenseEditor extends JavaEditor {
 	
 	public void startInteractiveMode()
 	{
-		nsTextArea.startInteractiveMode();
+		stTextArea.startInteractiveMode();
 	}
 	
 	public void stopInteractiveMode()
 	{
-		nsTextArea.stopInteractiveMode();
+		stTextArea.stopInteractiveMode();
 	}
 	
 	public void updateInterface(ArrayList<Number> numbers)
 	{
-		nsTextArea.updateInterface(numbers);
+		stTextArea.updateInterface(numbers);
 	}
 }
