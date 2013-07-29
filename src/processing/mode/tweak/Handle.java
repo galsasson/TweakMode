@@ -6,41 +6,52 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 
-public class Number {
+public class Handle {
 	public String type;
 	public String name;
-	public String value;
-	public String newValue;
+	public String strValue;
+	public String strNewValue;
 	public int varIndex;
 	int tabIndex;
 	int startChar, endChar, line;
 	int newStartChar, newEndChar;
 	
+	java.lang.Number value, newValue;
+	String strDiff;
 	// interface
 	int x, y, width, height;
 	int ballX, ballY;
 	int anchorX, anchorY;
 	double strength;
+	boolean showDiff;
 	
-	public Number(String t, String n, int vi, String v, int ti, int l, int sc, int ec)
+	public Handle(String t, String n, int vi, String v, int ti, int l, int sc, int ec)
 	{
 		type = t;
 		name = n;
 		varIndex = vi;
-		value = v;
+		strValue = v;
 		tabIndex = ti;
 		line = l;
 		startChar = sc;
 		endChar = ec;
+
+		if (type == "int") {
+			value = newValue = Integer.parseInt(strValue);
+		} 
+		else {
+			value = newValue = Float.parseFloat(strValue);
+		}		
 		
-		newValue = new String(value);
+		strNewValue = new String(strValue);
 		newStartChar = startChar;
 		newEndChar = endChar;
+		
 	}
 	
 	public String toString()
 	{
-		return type + " " + name + " = " + value + 
+		return type + " " + name + " = " + strValue + 
 				" (tab: " + tabIndex + ", line: " + line + 
 				", start: " + startChar + ", end: " + endChar + ")"; 
 	}
@@ -56,6 +67,7 @@ public class Number {
 		anchorY = 2;
 		
 		strength = 0;
+		showDiff = false;
 		
 		resetBallPos();
 	}
@@ -87,12 +99,30 @@ public class Number {
 		
 		if (type == "int") {
 			// how many pixels above/below the line
-			int val = Integer.parseInt(value) + (int)strength;		
-			newValue = Integer.toString(val);
+			newValue = Integer.parseInt(strValue) + (int)strength;		
+			strNewValue = Integer.toString((Integer)newValue);
+			int diff = (Integer)newValue - (Integer)value;
+			if (diff != 0) {
+				strDiff = Integer.toString(diff);
+				if (diff > 0) strDiff = "+" + strDiff;
+				showDiff = true;
+			}
+			else {
+				showDiff = false;
+			}
 		}
 		else {
-			float val = Float.parseFloat(value) + (float)strength;
-			newValue = String.format("%.03f", val);
+			newValue = Float.parseFloat(strValue) + (float)strength;
+			strNewValue = String.format("%.03f", (Float)newValue);
+			float diff = (Float)newValue - (Float)value;
+			if (diff != 0) {
+				strDiff = String.format("%.03f", diff);
+				if (diff > 0) strDiff = "+" + strDiff;
+				showDiff = true;
+			}
+			else {
+				showDiff = false;
+			}
 		}
 	}
 	
@@ -153,6 +183,17 @@ public class Number {
 		if (highlight) {
 			g2d.setColor(new Color(228,240,91, 127));
 			g2d.fillRect(-2, -height, width+4, height);
+		}
+		
+		// draw increment text
+		if (showDiff) {
+			g2d.setColor(new Color(160, 20, 20));	// dark red
+			float xx = anchorX+ballX + 5;
+			if (ballX > 0) {
+				float diffW = g2d.getFontMetrics().charsWidth(strDiff.toCharArray(), 0, strDiff.length());
+				xx -= diffW + 10;
+			}
+			g2d.drawString(strDiff, xx, anchorY+ballY-1);
 		}
 		
 		g2d.setTransform(prevTrans);

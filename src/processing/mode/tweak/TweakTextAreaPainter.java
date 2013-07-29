@@ -56,8 +56,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	protected int horizontalAdjustment = 0;
 	
 	public boolean interactiveMode = false;
-	public ArrayList<Number> numbers = null;
-	public Number mouseNumber = null;
+	public ArrayList<Handle> numbers = null;
+	public Handle mouseNumber = null;
 	
 	int cursorType;
 	
@@ -86,7 +86,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 				RenderingHints.VALUE_ANTIALIAS_ON);
 
-			for (Number n : numbers)
+			for (Handle n : numbers)
 			{
 				// draw only interface points that belong to the current tab
 				if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
@@ -117,7 +117,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	}
 	
 	// Update the interface
-	public void updateInterface(ArrayList<Number> numbers)
+	public void updateInterface(ArrayList<Handle> numbers)
 	{
 		this.numbers = numbers;
 		
@@ -139,7 +139,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		for (int tab=0; tab<code.length; tab++)
 		{
 			ta.setText(code[tab].getSavedProgram());
-			for (Number n : numbers)
+			for (Handle n : numbers)
 			{
 				// handle only interface points in tab 'tab'.
 				if (n.tabIndex != tab)
@@ -168,16 +168,16 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		SketchCode sc = ta.editor.getSketch().getCode(currentTab);
 		String code = sc.getSavedProgram();
 
-		for (Number n : numbers)
+		for (Handle n : numbers)
 		{
 			if (n.tabIndex != currentTab)
 				continue;
 			
 			int s = n.startChar + charInc;
 			int e = n.endChar + charInc;
-			code = replaceString(code, s, e, n.newValue);
+			code = replaceString(code, s, e, n.strNewValue);
 			n.newStartChar = n.startChar + charInc;
-			charInc += n.newValue.length() - n.value.length();
+			charInc += n.strNewValue.length() - n.strValue.length();
 			n.newEndChar = n.endChar + charInc;
 		}
 		
@@ -201,16 +201,16 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		return str.substring(0, start) + put + str.substring(end, str.length());
 	}
 
-	public void oscSendNewValue(Number n)
+	public void oscSendNewValue(Handle n)
 	{
 		int index = n.varIndex;
 		try {
 			if (n.type == "int") {
-				int val = Integer.parseInt(n.newValue);
+				int val = Integer.parseInt(n.strNewValue);
 				OSCSender.sendInt(index, val);
 			}
 			else {
-				float val = Float.parseFloat(n.newValue);
+				float val = Float.parseFloat(n.strNewValue);
 				OSCSender.sendFloat(index, val);
 			}
 		} catch (Exception e) { System.out.println("error sending OSC message!"); }
@@ -250,7 +250,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		for (Number n : numbers)
+		for (Handle n : numbers)
 		{
 			// skip numbers not in the current tag
 			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
@@ -275,7 +275,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		for (Number n : numbers)
+		for (Handle n : numbers)
 		{
 			// skip numbers not in the current tag
 			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())

@@ -177,7 +177,7 @@ public class TweakTextArea extends JEditTextArea {
 		interactiveMode = false;
 	}
 	
-	public void updateInterface(ArrayList<Number> numbers)
+	public void updateInterface(ArrayList<Handle> numbers)
 	{
 		tweakPainter.updateInterface(numbers);
 	}

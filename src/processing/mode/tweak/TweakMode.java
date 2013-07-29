@@ -109,7 +109,7 @@ public class TweakMode extends JavaMode {
     	}
     	
     	/* parse the saved sketch to get all numbers */
-    	ArrayList<Number> numbers = getAllNumbers(sketch);
+    	ArrayList<Handle> numbers = getAllNumbers(sketch);
     	
     	/* add our code to the sketch */
     	launchInteractive = automateSketch(sketch, numbers);
@@ -151,7 +151,7 @@ public class TweakMode extends JavaMode {
      * @return
      *  true on success
      */
-    private boolean automateSketch(Sketch sketch, ArrayList<Number> numbers)
+    private boolean automateSketch(Sketch sketch, ArrayList<Handle> numbers)
     {
     	SketchCode[] code = sketch.getCode();
 
@@ -169,7 +169,7 @@ public class TweakMode extends JavaMode {
     	{
     		int charInc = 0;
 			String c = code[tab].getSavedProgram();
-			for (Number n : numbers)
+			for (Handle n : numbers)
     		{
     			// handle only numbers that belong to the current tab
 				// (put numbers list inside SketchCode?)
@@ -178,7 +178,7 @@ public class TweakMode extends JavaMode {
     			
     			// replace number value with a variable
     			c = replaceString(c, n.startChar + charInc, n.endChar + charInc, n.name);
-    			charInc += n.name.length() - n.value.length();
+    			charInc += n.name.length() - n.strValue.length();
     		}
 			code[tab].setProgram(c);
     	}
@@ -206,9 +206,9 @@ public class TweakMode extends JavaMode {
     	header += "int[] numbersense_int = new int["+howManyInts(numbers)+"];\n";
     	header += "float[] numbersense_float = new float["+howManyFloats(numbers)+"];\n\n";
     	header += "void numbersense_initAllVars() {\n";
-    	for (Number n : numbers)
+    	for (Handle n : numbers)
     	{
-    		header += "  " + n.name + " = " + n.value + ";\n";
+    		header += "  " + n.name + " = " + n.strValue + ";\n";
     	}
     	header += "}\n\n";
     	header += "void numbersense_initOSC() {\n";
@@ -272,13 +272,13 @@ public class TweakMode extends JavaMode {
      * @return
      * ArrayList<Number> of all the numbers
      */
-    public ArrayList<Number> getAllNumbers(Sketch sketch)
+    public ArrayList<Handle> getAllNumbers(Sketch sketch)
     {
     	SketchCode[] code = sketch.getCode();
     	int intVarCount = 0;
     	int floatVarCount = 0;
 
-    	ArrayList<Number> numbers = new ArrayList<Number>();
+    	ArrayList<Handle> numbers = new ArrayList<Handle>();
 
     	/* for every number found:
     	 * save its type (int/float), name, value and position in code.
@@ -311,12 +311,12 @@ public class TweakMode extends JavaMode {
     			if (value.contains(".")) {
     				// consider this as a float
         			name = varPrefix + "_float[" + floatVarCount +"]";
-        			numbers.add(new Number("float", name, floatVarCount, value, i, line, m.start()+1, m.end()));
+        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, m.start()+1, m.end()));
     				floatVarCount++;
     			} else {
     				// consider this as an int
         			name = varPrefix + "_int[" + intVarCount +"]";
-        			numbers.add(new Number("int", name, intVarCount, value, i, line, m.start()+1, m.end()));
+        			numbers.add(new Handle("int", name, intVarCount, value, i, line, m.start()+1, m.end()));
     				intVarCount++;
     			}    			
     		}
@@ -386,20 +386,20 @@ public class TweakMode extends JavaMode {
 		return str.substring(0, start) + put + str.substring(end, str.length());
 	}
 	
-	private int howManyInts(ArrayList<Number> numbers)
+	private int howManyInts(ArrayList<Handle> numbers)
 	{
 		int count = 0;
-		for (Number n : numbers) {
+		for (Handle n : numbers) {
 			if (n.type == "int")
 				count++;
 		}
 		return count;
 	}
 	
-	private int howManyFloats(ArrayList<Number> numbers)
+	private int howManyFloats(ArrayList<Handle> numbers)
 	{
 		int count = 0;
-		for (Number n : numbers) {
+		for (Handle n : numbers) {
 			if (n.type == "float")
 				count++;
 		}

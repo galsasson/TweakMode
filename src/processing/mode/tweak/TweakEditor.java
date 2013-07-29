@@ -141,7 +141,7 @@ public class TweakEditor extends JavaEditor
 		tweakTextArea.stopInteractiveMode();
 	}
 	
-	public void updateInterface(ArrayList<Number> numbers)
+	public void updateInterface(ArrayList<Handle> numbers)
 	{
 		tweakTextArea.updateInterface(numbers);
 	}
