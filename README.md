@@ -9,7 +9,11 @@ with the new value showing the result while running. This mode is very useful if
 feature/color/behaviour in your sketch, if you want to experiment freely with numbers, or if you try to understand
 someone else's code. other uses are welcome.
 
-This mode extends JavaMode.
+Requires Processing 2.0+ with OscP5 library installed.
+
+- Based on TemplateMode: https://github.com/martinleopold/TemplateMode
+- Uses JavaOSC for communication with the sketch: http://www.illposed.com/software/javaosc.html
+- Extends JavaMode.
 
 Build
 -----
@@ -17,8 +21,7 @@ Build
   
 Install
 -------
-Make sure you have 'modes' folder in your SketchBook folder (http://processing.org/reference/environment/#Sketchbook)
-If not, create one. Then copy 'dist/TweakMode' to the 'modes' directory.
-
-Restart Processing.
+- Make sure you have a folder named "modes" in your Sketchbook folder, if not create one. The Sketchbook folder location can be found in Processing->Preferences if you don't know where it is.
+- Copy "dist/TweakMode" to the "modes" directory.
+- Restart Processing.
 
