@@ -25,8 +25,12 @@ import processing.mode.java.runner.Runner;
 public class TweakMode extends JavaMode {
 	TweakEditor editor;
 	
+	public boolean dumpModifiedCode;
+	
     public TweakMode(Base base, File folder) {
         super(base, folder);
+        
+        dumpModifiedCode = false;
     }
 
     /**
@@ -191,7 +195,7 @@ public class TweakMode extends JavaMode {
     	
     	// header contains variable declaration, initialization, and OSC listener function
     	String header;
-    	header = "\n" +
+    	header = "\n\n" +
     		 "/***************************/\n" +
     		 "/* MODIFIED BY NUMBERSENSE */\n" +
 		 	 "/***************************/\n" +
@@ -241,13 +245,15 @@ public class TweakMode extends JavaMode {
     	
     	System.out.println("ok");
 
-    	/* print out modified code */    	
-//    	System.out.println("Modified code:");
-//    	for (int i=0; i<code.length; i++)
-//    	{
-//    		System.out.println("file " + i + "\n=======");
-//    		System.out.println(code[i].getProgram());
-//    	}
+    	/* print out modified code */
+    	if (dumpModifiedCode) {
+    		System.out.println("\nModified code:\n");
+    		for (int i=0; i<code.length; i++)
+    		{
+    			System.out.println("file " + i + "\n=========");
+    			System.out.println(code[i].getProgram());
+    		}
+    	}
     	
 
     	return true;
@@ -414,6 +420,5 @@ public class TweakMode extends JavaMode {
 		pos = code.indexOf("{", pos);
 		return pos+1;
 	}
-	
 	
 }

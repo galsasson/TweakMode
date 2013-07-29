@@ -95,18 +95,12 @@ public class TweakEditor extends JavaEditor
 		JMenu menu = new JMenu("Tweak");
 		JCheckBoxMenuItem item;
 
-		item = new JCheckBoxMenuItem("Just a dummy item");
-		item.setSelected(true);
+		item = new JCheckBoxMenuItem("Dump modified code");
+		item.setSelected(false);
 		item.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-					System.out.println("unselected item");
-					getTextArea().repaint();
-				} else {
-					System.out.println("selected item");
-				}
+				tweakMode.dumpModifiedCode = ((JCheckBoxMenuItem)e.getSource()).isSelected();
 			}
 		});
 		menu.add(item);
