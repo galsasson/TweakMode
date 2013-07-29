@@ -13,7 +13,12 @@ This mode extends JavaMode.
 
 Build
 -----
+  # ant build
+  
+Install
+-------
+Make sure you have 'modes' folder in your SketchBook folder (http://processing.org/reference/environment/#Sketchbook)
+If not, create one. Then copy 'dist/TweakMode' to the 'modes' directory.
 
-Run
----
+Restart Processing.
 
