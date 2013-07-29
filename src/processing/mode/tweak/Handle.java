@@ -22,7 +22,7 @@ public class Handle {
 	int x, y, width, height;
 	int ballX, ballY;
 	int anchorX, anchorY;
-	double strength;
+	float strength;
 	boolean showDiff;
 	
 	public Handle(String t, String n, int vi, String v, int ti, int l, int sc, int ec)
@@ -126,25 +126,50 @@ public class Handle {
 		}
 	}
 	
-	private double getStrength()
+	private float getStrength()
 	{
-		if (ballY == 0)
-			return 0;
-			
-		double amountX = 4 - (double)Math.abs(ballY)/100 * 2;
-		double amountY = getNormalDist(amountX) * 1000;
-		amountY = (double)Math.round(amountY * 1000) / 1000;
-		if (ballY>0)
-			amountY *= -1;
+		float amount = (float)Math.abs(ballY);
 		
-//		System.out.println("amountY = " + amountY);
-		return amountY;			
+		if (amount == 0) {
+			return 0;
+		}
+		
+		if (amount > 500) {
+			amount = 500;
+		}
+		
+		// map 0-500 to 5.2-0.2
+		float xAxis = 5.2f - amount/100;
+		float yAxis;
+		if (type == "int") {
+			yAxis = getNormalDistInt(xAxis) * 1000;
+		}
+		else {
+			yAxis = getNormalDistFloat(xAxis) * 1000;
+		}		
+		// round to 3 digits after the decimal point
+		yAxis = (float)Math.round(yAxis * 1000) / 1000;	
+		// handle sign
+		if (ballY>0) {
+			yAxis *= -1;
+		}
+		
+		return yAxis;			
 	}
 	
-	private double getNormalDist(double _x)
+	/**
+	* Calculate normal distribution with mean of 0
+	*/
+	private float getNormalDistFloat(double _x)
 	{
-	  double tmp = -0.5 * Math.pow(_x, 2);
-	  return (1 / Math.sqrt(2*Math.PI)) * Math.exp(tmp);
+	  float tmp = -0.5f * (float)Math.pow(_x, 2);
+	  return (1 / (float)Math.sqrt(2*(float)Math.PI)) * (float)Math.exp(tmp);
+	}
+
+	private float getNormalDistInt(double _x)
+	{
+	  float tmp = -0.25f * (float)Math.pow(_x, 2);
+	  return (1 / (float)Math.sqrt(2*(float)Math.PI)) * (float)Math.exp(tmp);
 	}
 		
 	public void setPos(int nx, int ny)
