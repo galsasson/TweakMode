@@ -134,9 +134,7 @@ public class Handle {
 			return 0;
 		}
 		
-		if (amount > 500) {
-			amount = 500;
-		}
+		amount = (amount>500)? 500 : amount;
 		
 		// map 0-500 to 5.2-0.2
 		float xAxis = 5.2f - amount/100;
