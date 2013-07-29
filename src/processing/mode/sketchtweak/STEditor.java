@@ -93,12 +93,6 @@ public class STEditor extends JavaEditor
 		return stTextArea;
 	}
 	
-	@Override
-	public void handleStop()
-	{
-		super.handleStop();
-	}
-
 	public JMenu buildModeMenu() {
 		JMenu menu = new JMenu("SketchTweakMode");
 		JCheckBoxMenuItem item;
