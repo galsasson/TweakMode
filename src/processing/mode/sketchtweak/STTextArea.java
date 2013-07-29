@@ -32,6 +32,7 @@ import java.util.ArrayList;
 
 import processing.app.Editor;
 import processing.app.syntax.JEditTextArea;
+import processing.app.syntax.SyntaxDocument;
 import processing.app.syntax.SyntaxStyle;
 import processing.app.syntax.TextAreaDefaults;
 import processing.app.syntax.Token;
@@ -85,6 +86,34 @@ public class STTextArea extends JEditTextArea {
 		
 		add(CENTER, painter);
 	}
+	
+	/**
+	* Set document with a twist, includes the old caret
+	* and scroll positions, added for p5. [fry]
+	* - verify that start and stop fall inside the document [gal]
+	*/
+	@Override
+	public void setDocument(SyntaxDocument document,
+			int start, int stop, int scroll) {
+		if (this.document == document)
+			return;
+		if (this.document != null)
+			this.document.removeDocumentListener(documentHandler);
+		this.document = document;
+
+		document.addDocumentListener(documentHandler);
+
+		if (start > document.getLength())
+			start = document.getLength();
+		if (stop > document.getLength())
+			stop = document.getLength();
+		
+		select(start, stop);
+		updateScrollBars();
+		setScrollPosition(scroll);
+		painter.repaint();
+	}
+	
 	
 	/* remove all standard interaction listeners */
 	public void removeAllListeners()

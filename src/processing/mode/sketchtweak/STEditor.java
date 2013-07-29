@@ -40,15 +40,22 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.TableModel;
+import javax.swing.text.BadLocationException;
 
 import processing.app.Base;
 import processing.app.EditorState;
+import processing.app.EditorToolbar;
 import processing.app.Mode;
+import processing.app.Sketch;
+import processing.app.SketchCode;
 import processing.app.SketchException;
 import processing.app.syntax.JEditTextArea;
 import processing.app.syntax.PdeTextAreaDefaults;
+import processing.app.syntax.SyntaxDocument;
 import processing.mode.java.JavaBuild;
 import processing.mode.java.JavaEditor;
+import processing.mode.java.JavaToolbar;
+import processing.mode.java.runner.Runner;
 
 /**
  * Editor for STMode
@@ -56,9 +63,10 @@ import processing.mode.java.JavaEditor;
  * @author Gal Sasson &lt;sasgal@gmail.com&gt;
  * 
  */
-public class STEditor extends JavaEditor {
-
+public class STEditor extends JavaEditor 
+{
 	SketchTweakMode stmode;
+	
 	/**
 	 * Custom TextArea
 	 */
@@ -72,6 +80,10 @@ public class STEditor extends JavaEditor {
 
 		stmode = (SketchTweakMode)mode;
 	}
+	
+	public EditorToolbar createToolbar() {
+		return new STToolbar(this, base);
+	}
 
 	/**
 	 * Override creation of the default textarea.
@@ -81,17 +93,13 @@ public class STEditor extends JavaEditor {
 		return stTextArea;
 	}
 	
+	@Override
 	public void handleStop()
 	{
 		super.handleStop();
-		stmode.handleStop();
 	}
 
 	public JMenu buildModeMenu() {
-
-		// Enable Error Checker - CB
-		// Show/Hide Problem Window - CB
-		// Show Warnings - CB
 		JMenu menu = new JMenu("SketchTweakMode");
 		JCheckBoxMenuItem item;
 
@@ -121,11 +129,63 @@ public class STEditor extends JavaEditor {
 	
 	public void stopInteractiveMode()
 	{
+		if (wasCodeModified()) {
+			// ask to keep the values
+			int ret = Base.showYesNoQuestion(this, "Sketch Tweak", 
+									"Keep the changes?", 
+									"You changed some values in your sketch. Would you like to keep the changes?");
+			if (ret == 1) {
+				// Don't keep changes
+				loadSavedSketch();
+				// update the painter to draw the new (old) code
+				stTextArea.invalidate();
+			}
+			else {
+				// the new values are already present, just make sure the user can save
+				sketch.setModified(true);
+			}
+		}
+		
 		stTextArea.stopInteractiveMode();
 	}
 	
 	public void updateInterface(ArrayList<Number> numbers)
 	{
 		stTextArea.updateInterface(numbers);
+	}
+	
+	/**
+	* Deactivate run button
+	* Do this because when Mode.handleRun returns null the play button stays on.
+	*/
+	public void deactivateRun()
+	{
+		toolbar.deactivate(STToolbar.RUN);
+	}
+	
+	private boolean wasCodeModified()
+	{
+		for (SketchCode c : sketch.getCode()) {
+			if (!c.getProgram().equals(c.getSavedProgram())) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private void loadSavedSketch()
+	{
+		for (SketchCode c : sketch.getCode()) {
+			if (!c.getProgram().equals(c.getSavedProgram())) {
+				c.setProgram(c.getSavedProgram());		
+				// set document to null so the text editor will refresh program contents
+				// when the document tab is being clicked
+				c.setDocument(null);
+			}
+		}
+		
+		// this will update the current code		
+		setCode(sketch.getCurrentCode());
 	}
 }

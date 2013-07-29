@@ -165,7 +165,8 @@ public class STTextAreaPainter extends TextAreaPainter
 	{
 		int charInc = 0;
 		int currentTab = ta.editor.getSketch().getCurrentCodeIndex();
-		String code = ta.editor.getSketch().getCode(currentTab).getSavedProgram();
+		SketchCode sc = ta.editor.getSketch().getCode(currentTab);
+		String code = sc.getSavedProgram();
 
 		for (Number n : numbers)
 		{
@@ -189,6 +190,9 @@ public class STTextAreaPainter extends TextAreaPainter
 			int scrollHor = ta.getHorizontalOffset();	
 			ta.setText(code);
 			ta.scrollTo(scrollLine, scrollHor);
+			
+			// update also the sketch code for later
+			sc.setProgram(code);
 		}
 	}
 	

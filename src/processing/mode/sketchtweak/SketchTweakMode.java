@@ -45,7 +45,6 @@ public class SketchTweakMode extends JavaMode {
      */
     @Override
     public Editor createEditor(Base base, String path, EditorState state) {
-    	System.out.println("Mode.createEditor!!!!!!!!!!!!!!!!!!!!");
     	editor = new STEditor(base, path, state, this);
     	return (Editor)editor;
     }
@@ -101,7 +100,13 @@ public class SketchTweakMode extends JavaMode {
     @Override
     public Runner handleRun(Sketch sketch, RunnerListener listener) throws SketchException {
     	boolean launchInteractive;
-    	System.out.println("I'm handling run now!!!????");
+    	System.out.println("SketchTweak: run");
+    	
+    	if (sketch.isModified()) {
+    		editor.deactivateRun();
+    		Base.showMessage("Save", "Please save the sketch before running.");
+    		return null;	
+    	}
     	
     	/* parse the saved sketch to get all numbers */
     	ArrayList<Number> numbers = getAllNumbers(sketch);
@@ -116,6 +121,9 @@ public class SketchTweakMode extends JavaMode {
           new Thread(new Runnable() {
             public void run() {
               runtime.launch(false);  // this blocks until finished
+              
+              // executed when the sketch quits
+              editor.stopInteractiveMode();
             }
           }).start();
           
@@ -132,11 +140,6 @@ public class SketchTweakMode extends JavaMode {
         }
         
         return null;    	
-    }
-    
-    public void handleStop()
-    {
-    	editor.stopInteractiveMode();
     }
     
     /**
@@ -157,6 +160,8 @@ public class SketchTweakMode extends JavaMode {
 
     	if (numbers.size() == 0)
     		return false;
+    	
+    	System.out.print("SketchTweak: instrument code... ");
 
     	/* modify the code below, replace all numbers with their variable names */
     	// loop through all tabs in the current sketch
@@ -177,6 +182,9 @@ public class SketchTweakMode extends JavaMode {
     		}
 			code[tab].setProgram(c);
     	}
+    	System.out.println("ok");
+    	
+    	System.out.print("SketchTweak: add header... ");
     	
     	/* add the main header to the code in the first tab */
     	String c = code[0].getProgram();
@@ -230,20 +238,24 @@ public class SketchTweakMode extends JavaMode {
     	c = replaceString(c, pos, pos, addToSetup);    	
 
     	code[0].setProgram(header + c);
-
-    	/* print modified code */
     	
-    	System.out.println("Modified code:");
-    	for (int i=0; i<code.length; i++)
-    	{
-    		System.out.println("file " + i + "\n=======");
-    		System.out.println(code[i].getProgram());
-    	}
+    	System.out.println("ok");
+
+    	/* print out modified code */    	
+//    	System.out.println("Modified code:");
+//    	for (int i=0; i<code.length; i++)
+//    	{
+//    		System.out.println("file " + i + "\n=======");
+//    		System.out.println(code[i].getProgram());
+//    	}
     	
 
     	return true;
     }
 
+	/**
+	* After compiling the modified sketch, bring it back the original code to show in PDE
+	*/
     public void revertSketch(Sketch sketch)
     {
     	SketchCode[] code = sketch.getCode();
@@ -298,15 +310,11 @@ public class SketchTweakMode extends JavaMode {
     			String name;
     			if (value.contains(".")) {
     				// consider this as a float
-        			// format value
-//        			String fValue = String.format("%.03f", Float.parseFloat(value));
         			name = varPrefix + "_float[" + floatVarCount +"]";
         			numbers.add(new Number("float", name, floatVarCount, value, i, line, m.start()+1, m.end()));
     				floatVarCount++;
     			} else {
     				// consider this as an int
-        			// format value
-//        			String fValue = String.format("%d", Integer.parseInt(value));
         			name = varPrefix + "_int[" + intVarCount +"]";
         			numbers.add(new Number("int", name, intVarCount, value, i, line, m.start()+1, m.end()));
     				intVarCount++;

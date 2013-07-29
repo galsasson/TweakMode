@@ -1,14 +1,16 @@
 
 Known Bugs: 28.07.2013 (Gal Sasson)
 - negative numbers (e.g. -23) are treated like positive (e.g. 23)
+- processing: play button should be set off with sketch cannot be run (Mode.handleRun returns null) ** fixed
+
 
 Known Bugs: 27.07.2013 (Gal Sasson)
-- when quiting a run, ask/update code.
+- when quiting a run, ask/update code. ** done
 - limit the mapping of the drag strength in getStrength()
 
 Known Bugs: 26.07.2013 (Gal Sasson)
 - cannot maintain horizontal scroll when dragging a number point.
-- user must click 'stop' to go back to edit mode (closing sketch window does not work like 'stop')
+- user must click 'stop' to go back to edit mode (closing sketch window does not work like 'stop') ** fixed
 
 todo:
 
