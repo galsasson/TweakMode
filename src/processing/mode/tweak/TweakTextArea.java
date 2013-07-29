@@ -1,5 +1,5 @@
 /*
-  Part of SketchTweakMode project (https://github.com/galsasson/SketchTweakMode)
+  Part of TweakMode project (https://github.com/galsasson/TweakMode)
   
   Under Google Summer of Code 2013 - 
   http://www.google-melange.com/gsoc/homepage/google/gsoc2013
@@ -20,7 +20,7 @@
   Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package processing.mode.sketchtweak;
+package processing.mode.tweak;
 
 import java.awt.Cursor;
 import java.awt.Font;
@@ -39,14 +39,14 @@ import processing.app.syntax.Token;
 import processing.app.syntax.TokenMarker;
 
 /**
- * Custom TextArea for STMode
+ * Custom TextArea for Tweak Mode
  * 
  * @author Gal Sasson &lt;sasgal@gmail.com&gt;
  * 
  */
-public class STTextArea extends JEditTextArea {
+public class TweakTextArea extends JEditTextArea {
 	public Editor editor;
-	STTextAreaPainter stpainter;
+	TweakTextAreaPainter tweakPainter;
 	
 	// save input listeners to stop/start text edit
 	ComponentListener[] prevCompListeners;
@@ -55,7 +55,7 @@ public class STTextArea extends JEditTextArea {
 	
 	boolean interactiveMode;
 
-	public STTextArea(Editor editor, TextAreaDefaults defaults) {
+	public TweakTextArea(Editor editor, TextAreaDefaults defaults) {
 		super(defaults);
 		this.editor = editor;
 		ComponentListener[] componentListeners = painter
@@ -66,8 +66,8 @@ public class STTextArea extends JEditTextArea {
 
 		remove(painter);
 
-		stpainter = new STTextAreaPainter(this, defaults);
-		painter = stpainter;
+		tweakPainter = new TweakTextAreaPainter(this, defaults);
+		painter = tweakPainter;
 
 		for (ComponentListener cl : componentListeners)
 			painter.addComponentListener(cl);
@@ -146,9 +146,9 @@ public class STTextArea extends JEditTextArea {
 		removeAllListeners();
 		
 		// add our private interaction listeners
-		stpainter.addMouseListener(stpainter);
-		stpainter.addMouseMotionListener(stpainter);
-		stpainter.startInterativeMode();
+		tweakPainter.addMouseListener(tweakPainter);
+		tweakPainter.addMouseMotionListener(tweakPainter);
+		tweakPainter.startInterativeMode();
 		painter.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 	}
 	
@@ -171,7 +171,7 @@ public class STTextArea extends JEditTextArea {
 		for (MouseMotionListener mml : prevMMotionListeners)
 			painter.addMouseMotionListener(mml);		
 		
-		stpainter.stopInteractiveMode();
+		tweakPainter.stopInteractiveMode();
 		painter.setCursor(new Cursor(Cursor.TEXT_CURSOR));
 		
 		interactiveMode = false;
@@ -179,7 +179,7 @@ public class STTextArea extends JEditTextArea {
 	
 	public void updateInterface(ArrayList<Number> numbers)
 	{
-		stpainter.updateInterface(numbers);
+		tweakPainter.updateInterface(numbers);
 	}
 	
 }

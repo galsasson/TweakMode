@@ -1,4 +1,4 @@
-package processing.mode.sketchtweak;
+package processing.mode.tweak;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,10 +22,10 @@ import processing.mode.java.runner.Runner;
  * Mode for enabling real-time modifications to numbers in the code.
  *
  */
-public class SketchTweakMode extends JavaMode {
-	STEditor editor;
+public class TweakMode extends JavaMode {
+	TweakEditor editor;
 	
-    public SketchTweakMode(Base base, File folder) {
+    public TweakMode(Base base, File folder) {
         super(base, folder);
     }
 
@@ -37,7 +37,7 @@ public class SketchTweakMode extends JavaMode {
      */
     @Override
     public String getTitle() {
-        return "Sketch Tweak";
+        return "Tweak";
     }
 
     /**
@@ -45,7 +45,7 @@ public class SketchTweakMode extends JavaMode {
      */
     @Override
     public Editor createEditor(Base base, String path, EditorState state) {
-    	editor = new STEditor(base, path, state, this);
+    	editor = new TweakEditor(base, path, state, this);
     	return (Editor)editor;
     }
 
@@ -100,11 +100,11 @@ public class SketchTweakMode extends JavaMode {
     @Override
     public Runner handleRun(Sketch sketch, RunnerListener listener) throws SketchException {
     	boolean launchInteractive;
-    	System.out.println("SketchTweak: run");
+    	System.out.println("Tweak: run");
     	
     	if (sketch.isModified()) {
     		editor.deactivateRun();
-    		Base.showMessage("Save", "Please save the sketch before running.");
+    		Base.showMessage("Save", "Please save the sketch before running in Tweak Mode.");
     		return null;	
     	}
     	
@@ -161,7 +161,7 @@ public class SketchTweakMode extends JavaMode {
     	if (numbers.size() == 0)
     		return false;
     	
-    	System.out.print("SketchTweak: instrument code... ");
+    	System.out.print("Tweak: instrument code... ");
 
     	/* modify the code below, replace all numbers with their variable names */
     	// loop through all tabs in the current sketch
@@ -184,7 +184,7 @@ public class SketchTweakMode extends JavaMode {
     	}
     	System.out.println("ok");
     	
-    	System.out.print("SketchTweak: add header... ");
+    	System.out.print("Tweak: add header... ");
     	
     	/* add the main header to the code in the first tab */
     	String c = code[0].getProgram();

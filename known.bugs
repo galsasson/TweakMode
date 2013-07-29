@@ -19,3 +19,5 @@ todo:
 - add +/- of how much was incremented.
 - add text input for number value
 - add space before and after the code
+- add three number modes: integers, floats and floats between -1 - 1.
+

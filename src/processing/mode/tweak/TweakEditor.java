@@ -1,5 +1,5 @@
 /*
-  Part of SketchTweakMode project (https://github.com/galsasson/SketchTweakMode)
+  Part of TweakMode project (https://github.com/galsasson/TweakMode)
   
   Under Google Summer of Code 2013 - 
   http://www.google-melange.com/gsoc/homepage/google/gsoc2013
@@ -20,7 +20,7 @@
   Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package processing.mode.sketchtweak;
+package processing.mode.tweak;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -63,38 +63,36 @@ import processing.mode.java.runner.Runner;
  * @author Gal Sasson &lt;sasgal@gmail.com&gt;
  * 
  */
-public class STEditor extends JavaEditor 
+public class TweakEditor extends JavaEditor 
 {
-	SketchTweakMode stmode;
+	TweakMode tweakMode;
 	
 	/**
 	 * Custom TextArea
 	 */
-	protected STTextArea stTextArea;
-	protected final STEditor thisEditor;
+	protected TweakTextArea tweakTextArea;
 
-	protected STEditor(Base base, String path, EditorState state,
+	protected TweakEditor(Base base, String path, EditorState state,
 			final Mode mode) {
 		super(base, path, state, mode);
-		thisEditor = this;
 
-		stmode = (SketchTweakMode)mode;
+		tweakMode = (TweakMode)mode;
 	}
 	
 	public EditorToolbar createToolbar() {
-		return new STToolbar(this, base);
+		return new TweakToolbar(this, base);
 	}
 
 	/**
 	 * Override creation of the default textarea.
 	 */
 	protected JEditTextArea createTextArea() {
-		stTextArea = new STTextArea(this, new PdeTextAreaDefaults(mode));
-		return stTextArea;
+		tweakTextArea = new TweakTextArea(this, new PdeTextAreaDefaults(mode));
+		return tweakTextArea;
 	}
 	
 	public JMenu buildModeMenu() {
-		JMenu menu = new JMenu("SketchTweakMode");
+		JMenu menu = new JMenu("Tweak");
 		JCheckBoxMenuItem item;
 
 		item = new JCheckBoxMenuItem("Just a dummy item");
@@ -118,7 +116,7 @@ public class STEditor extends JavaEditor
 	
 	public void startInteractiveMode()
 	{
-		stTextArea.startInteractiveMode();
+		tweakTextArea.startInteractiveMode();
 	}
 	
 	public void stopInteractiveMode()
@@ -132,7 +130,7 @@ public class STEditor extends JavaEditor
 				// Don't keep changes
 				loadSavedSketch();
 				// update the painter to draw the new (old) code
-				stTextArea.invalidate();
+				tweakTextArea.invalidate();
 			}
 			else {
 				// the new values are already present, just make sure the user can save
@@ -140,12 +138,12 @@ public class STEditor extends JavaEditor
 			}
 		}
 		
-		stTextArea.stopInteractiveMode();
+		tweakTextArea.stopInteractiveMode();
 	}
 	
 	public void updateInterface(ArrayList<Number> numbers)
 	{
-		stTextArea.updateInterface(numbers);
+		tweakTextArea.updateInterface(numbers);
 	}
 	
 	/**
@@ -154,7 +152,7 @@ public class STEditor extends JavaEditor
 	*/
 	public void deactivateRun()
 	{
-		toolbar.deactivate(STToolbar.RUN);
+		toolbar.deactivate(TweakToolbar.RUN);
 	}
 	
 	private boolean wasCodeModified()

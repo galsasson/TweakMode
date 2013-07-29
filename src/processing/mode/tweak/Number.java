@@ -1,4 +1,4 @@
-package processing.mode.sketchtweak;
+package processing.mode.tweak;
 
 import java.awt.Color;
 import java.awt.Graphics;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>SketchTweakMode</name>
+	<name>TweakMode</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -23,12 +23,12 @@
 		<link>
 			<name>build</name>
 			<type>2</type>
-			<location>/Users/gal/itp/GSoC/SketchTweakMode/build</location>
+			<location>/Users/gal/itp/GSoC/TweakMode/build</location>
 		</link>
 		<link>
 			<name>src</name>
 			<type>2</type>
-			<location>/Users/gal/itp/GSoC/SketchTweakMode/src</location>
+			<location>/Users/gal/itp/GSoC/TweakMode/src</location>
 		</link>
 	</linkedResources>
 </projectDescription>

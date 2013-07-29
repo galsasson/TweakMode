@@ -1,5 +1,5 @@
 /*
-  Part of SketchTweakMode project (https://github.com/galsasson/SketchTweakMode)
+  Part of TweakMode project (https://github.com/galsasson/TweakMode)
   
   Under Google Summer of Code 2013 - 
   http://www.google-melange.com/gsoc/homepage/google/gsoc2013
@@ -20,7 +20,7 @@
   Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package processing.mode.sketchtweak;
+package processing.mode.tweak;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -49,10 +49,10 @@ import processing.app.syntax.TokenMarker;
  * @author Gal Sasson &lt;sasgal@gmail.com&gt;
  * 
  */
-public class STTextAreaPainter extends TextAreaPainter 
+public class TweakTextAreaPainter extends TextAreaPainter 
 	implements MouseListener, MouseMotionListener {
 
-	protected STTextArea ta;
+	protected TweakTextArea ta;
 	protected int horizontalAdjustment = 0;
 	
 	public boolean interactiveMode = false;
@@ -63,7 +63,7 @@ public class STTextAreaPainter extends TextAreaPainter
 	
 	private final Object paintMutex = new Object();
 	
-	public STTextAreaPainter(STTextArea textArea, TextAreaDefaults defaults) 
+	public TweakTextAreaPainter(TweakTextArea textArea, TextAreaDefaults defaults) 
 	{
 		super((JEditTextArea)textArea, defaults);
 		ta = textArea;
