@@ -1,5 +1,6 @@
 package processing.mode.tweak;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -191,10 +192,10 @@ public class Handle {
 				
 		// draw bottom line
 		g2d.fillRect(0, 0, width, 2);
-		// draw ball and line
+		// draw ball
 		g2d.fillArc(anchorX + ballX - 3, anchorY + ballY - 3, 6, 6, 0, 360);
 		
-		// don't draw vertical line on the text
+		// skip text when drawing the vertical line
 		if (ballY < -height)
 			g2d.drawLine(anchorX, anchorY-height, anchorX, anchorY+ballY);
 		else
@@ -211,10 +212,16 @@ public class Handle {
 		// draw increment text
 		if (showDiff) {
 			g2d.setColor(new Color(160, 20, 20));	// dark red
-			float xx = anchorX+ballX + 5;
-			if (ballX > 0) {
-				float diffW = g2d.getFontMetrics().charsWidth(strDiff.toCharArray(), 0, strDiff.length());
-				xx -= diffW + 10;
+			float diffW = g2d.getFontMetrics().charsWidth(strDiff.toCharArray(), 0, strDiff.length());
+			float xx = 0;
+			if (ballX > diffW) {
+				xx = anchorX+ballX-diffW-5;
+			}
+			else if (ballX < -diffW-5) {
+				xx = anchorX+ballX+5;
+			}
+			else {
+				xx = anchorX+5;
 			}
 			g2d.drawString(strDiff, xx, anchorY+ballY-1);
 		}
