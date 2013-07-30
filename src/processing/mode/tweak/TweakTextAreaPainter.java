@@ -181,19 +181,21 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			n.newEndChar = n.endChar + charInc;
 		}
 		
-		// don't paint while we do the stuff below
-		synchronized(this) {
+		replaceTextAreaCode(code);
+		// update also the sketch code for later
+		sc.setProgram(code);
+	}
+	
+	private synchronized void replaceTextAreaCode(String code)
+	{
+			// don't paint while we do the stuff below
 			/* by default setText will scroll all the way to the end
 			 * remember current scroll position
 			 * TODO: this doesn't work yet for horizontal scroll */
 			int scrollLine = ta.getScrollPosition();
-			int scrollHor = ta.getHorizontalOffset();	
-			ta.setText(code);
-			ta.scrollTo(scrollLine, scrollHor);
-			
-			// update also the sketch code for later
-			sc.setProgram(code);
-		}
+			int scrollHor = ta.getHorizontalScroll();
+			ta.setText(code);			
+			ta.setOrigin(scrollLine, -scrollHor);			
 	}
 	
 	public String replaceString(String str, int start, int end, String put)

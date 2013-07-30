@@ -25,6 +25,8 @@ import processing.mode.java.runner.Runner;
 public class TweakMode extends JavaMode {
 	TweakEditor editor;
 	
+	String baseCode[];
+	
 	public boolean dumpModifiedCode;
 	
     public TweakMode(Base base, File folder) {
@@ -101,51 +103,55 @@ public class TweakMode extends JavaMode {
         return null;  // badness
     }
 
-    @Override
-    public Runner handleRun(Sketch sketch, RunnerListener listener) throws SketchException {
-    	boolean launchInteractive;
-    	System.out.println("Tweak: run");
+	@Override
+	public Runner handleRun(Sketch sketch, RunnerListener listener) throws SketchException 
+	{
+		boolean launchInteractive;
+		System.out.println("Tweak: run");
+
+		if (sketch.isModified()) {
+			editor.deactivateRun();
+			Base.showMessage("Save", "Please save the sketch before running in Tweak Mode.");
+			return null;	
+		}
     	
-    	if (sketch.isModified()) {
-    		editor.deactivateRun();
-    		Base.showMessage("Save", "Please save the sketch before running in Tweak Mode.");
-    		return null;	
-    	}
+		//initBaseCode(sketch);
     	
-    	/* parse the saved sketch to get all numbers */
-    	ArrayList<Handle> numbers = getAllNumbers(sketch);
+		/* parse the saved sketch to get all numbers */
+		ArrayList<Handle> numbers = getAllNumbers(sketch);
     	
-    	/* add our code to the sketch */
-    	launchInteractive = automateSketch(sketch, numbers);
+		/* add our code to the sketch */
+		launchInteractive = automateSketch(sketch, numbers);
     	
-        JavaBuild build = new JavaBuild(sketch);
-        String appletClassName = build.build(false);
-        if (appletClassName != null) {
-          final Runner runtime = new Runner(build, listener);
-          new Thread(new Runnable() {
-            public void run() {
-              runtime.launch(false);  // this blocks until finished
+		JavaBuild build = new JavaBuild(sketch);
+		String appletClassName = build.build(false);
+		if (appletClassName != null) {
+			final Runner runtime = new Runner(build, listener);
+			new Thread(new Runnable() {
+				public void run() {
+					runtime.launch(false);  // this blocks until finished
               
-              // executed when the sketch quits
-              editor.stopInteractiveMode();
-            }
-          }).start();
+					// executed when the sketch quits
+					editor.stopInteractiveMode();
+				}
+			}).start();
           
-          if (launchInteractive)
-          {
-        	  // annoying bug: editor shows the modified code
-        	  revertSketch(sketch);
+			if (launchInteractive) {
+				// annoying bug: editor shows the modified code
+				revertSketch(sketch);
           
-        	  editor.updateInterface(numbers);
-        	  editor.startInteractiveMode();
-          }
-          
-          return runtime;
-        }
+				editor.updateInterface(numbers);
+				editor.startInteractiveMode();
+			}
+			else {
+			}
+
+			return runtime;
+		}
         
-        return null;    	
-    }
-    
+		return null;    	
+	}
+
     /**
      * Replace all numbers with variables and add code to initialize these variables and handle OSC messages.
      * @param sketch
@@ -166,7 +172,9 @@ public class TweakMode extends JavaMode {
     		return false;
     	
     	System.out.print("Tweak: instrument code... ");
-
+		
+		// Copy current program to interactive program
+		
     	/* modify the code below, replace all numbers with their variable names */
     	// loop through all tabs in the current sketch
     	for (int tab=0; tab<code.length; tab++)
@@ -259,19 +267,6 @@ public class TweakMode extends JavaMode {
     	return true;
     }
 
-	/**
-	* After compiling the modified sketch, bring it back the original code to show in PDE
-	*/
-    public void revertSketch(Sketch sketch)
-    {
-    	SketchCode[] code = sketch.getCode();
-    	
-    	for (SketchCode c : code)
-    	{
-    		c.setProgram(c.getSavedProgram());
-    	}
-    }
-
     /**
      * Get a list of all the numbers in this sketch
      * @param sketch: the sketch to take the numbers from
@@ -292,7 +287,7 @@ public class TweakMode extends JavaMode {
     	String varPrefix = "numbersense";
     	for (int i=0; i<code.length; i++)
     	{
-    		String c = new String(code[i].getSavedProgram());
+    		String c = code[i].getSavedProgram();
     		Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.?\\d*");
     		Matcher m = p.matcher(c);
         
@@ -329,6 +324,32 @@ public class TweakMode extends JavaMode {
     	}
 
     	return numbers;
+    }
+
+	private void initBaseCode(Sketch sketch)
+	{
+    	SketchCode[] code = sketch.getCode();
+    	
+    	baseCode = new String[code.length];
+		for (int i=0; i<code.length; i++)
+		{
+			baseCode[i] = new String(code[i].getSavedProgram());
+			baseCode[i] = "\n\n\n\n\n\n\n\n\n\n" + baseCode[i];
+			baseCode[i] += "\n\n\n\n\n\n\n\n\n\n";
+		} 
+	}
+	
+    /**
+	* After compiling the modified sketch, bring it back the original code to show in PDE
+	*/
+    private void revertSketch(Sketch sketch)
+    {
+    	SketchCode[] code = sketch.getCode();
+    	
+    	for (int i=0; i<code.length; i++)
+    	{
+    		code[i].setProgram(code[i].getSavedProgram());
+    	}
     }
     
     private int countLines(String str)

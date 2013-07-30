@@ -167,6 +167,11 @@ public class TweakTextArea extends JEditTextArea {
 		interactiveMode = false;
 	}
 	
+	public int getHorizontalScroll()
+	{
+		return horizontal.getValue();
+	}
+	
 	private void addPrevListeners()
 	{
 		// add the original text-edit listeners

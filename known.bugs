@@ -1,3 +1,5 @@
+Known Bugs: 20.07.2013 (Gal Sasson)
+- Caret is visible in run mode (can be also controlled (might be a feature))
 
 Known Bugs: 29.07.2013 (Gal Sasson)
 - cannot run sketch using the video library: 'library not found'
@@ -12,7 +14,7 @@ Known Bugs: 27.07.2013 (Gal Sasson)
 - limit the mapping of the drag strength in getStrength() ** fixed
 
 Known Bugs: 26.07.2013 (Gal Sasson)
-- cannot maintain horizontal scroll when dragging a number point.
+- cannot maintain horizontal scroll when dragging a number point. ** fixed
 - user must click 'stop' to go back to edit mode (closing sketch window does not work like 'stop') ** fixed
 
 todo:
