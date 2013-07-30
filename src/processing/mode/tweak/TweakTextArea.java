@@ -26,6 +26,7 @@ import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.event.ComponentListener;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
@@ -52,37 +53,27 @@ public class TweakTextArea extends JEditTextArea {
 	ComponentListener[] prevCompListeners;
 	MouseListener[] prevMouseListeners;
 	MouseMotionListener[] prevMMotionListeners;
+	KeyListener[] prevKeyListeners;
 	
 	boolean interactiveMode;
 
 	public TweakTextArea(Editor editor, TextAreaDefaults defaults) {
 		super(defaults);
 		this.editor = editor;
-		ComponentListener[] componentListeners = painter
+		prevCompListeners = painter
 				.getComponentListeners();
-		MouseListener[] mouseListeners = painter.getMouseListeners();
-		MouseMotionListener[] mouseMotionListeners = painter
+		prevMouseListeners = painter.getMouseListeners();
+		prevMMotionListeners = painter
 				.getMouseMotionListeners();
-
+		prevKeyListeners = editor.getKeyListeners();
+		
 		remove(painter);
 
 		tweakPainter = new TweakTextAreaPainter(this, defaults);
 		painter = tweakPainter;
-
-		for (ComponentListener cl : componentListeners)
-			painter.addComponentListener(cl);
-
-		for (MouseListener ml : mouseListeners)
-			painter.addMouseListener(ml);
-
-		for (MouseMotionListener mml : mouseMotionListeners)
-			painter.addMouseMotionListener(mml);
-
-		prevCompListeners = componentListeners;
-		prevMouseListeners = mouseListeners;
-		prevMMotionListeners = mouseMotionListeners;
 		
 		interactiveMode = false;
+		addPrevListeners();
 		
 		add(CENTER, painter);
 	}
@@ -123,6 +114,7 @@ public class TweakTextArea extends JEditTextArea {
 		MouseListener[] mouseListeners = painter.getMouseListeners();
 		MouseMotionListener[] mouseMotionListeners = painter
 				.getMouseMotionListeners();
+		KeyListener[] keyListeners = editor.getKeyListeners();
 
 		for (ComponentListener cl : componentListeners)
 			painter.removeComponentListener(cl);
@@ -131,7 +123,11 @@ public class TweakTextArea extends JEditTextArea {
 			painter.removeMouseListener(ml);
 
 		for (MouseMotionListener mml : mouseMotionListeners)
-			painter.removeMouseMotionListener(mml);		
+			painter.removeMouseMotionListener(mml);
+			
+		for (KeyListener kl : keyListeners) {
+			editor.removeKeyListener(kl);
+		}	
 	}
 	
 	public void startInteractiveMode()
@@ -140,9 +136,6 @@ public class TweakTextArea extends JEditTextArea {
 		if (interactiveMode)
 			return;
 		
-		interactiveMode = true;
-		
-		this.editable = false;
 		removeAllListeners();
 		
 		// add our private interaction listeners
@@ -150,6 +143,10 @@ public class TweakTextArea extends JEditTextArea {
 		tweakPainter.addMouseMotionListener(tweakPainter);
 		tweakPainter.startInterativeMode();
 		painter.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		this.editable = false;
+		this.caretBlinks = false;
+		this.setCaretVisible(false);
+		interactiveMode = true;		
 	}
 	
 	public void stopInteractiveMode()
@@ -158,23 +155,33 @@ public class TweakTextArea extends JEditTextArea {
 		if (!interactiveMode)
 			return;
 		
-		this.editable = true;
 		removeAllListeners();
-		
-		// add the original text-edit listeners
-		for (ComponentListener cl : prevCompListeners)
-			painter.addComponentListener(cl);
-
-		for (MouseListener ml : prevMouseListeners)
-			painter.addMouseListener(ml);
-
-		for (MouseMotionListener mml : prevMMotionListeners)
-			painter.addMouseMotionListener(mml);		
+		addPrevListeners();
 		
 		tweakPainter.stopInteractiveMode();
 		painter.setCursor(new Cursor(Cursor.TEXT_CURSOR));
+		this.editable = true;
+		this.caretBlinks = true;
+		this.setCaretVisible(true);
 		
 		interactiveMode = false;
+	}
+	
+	private void addPrevListeners()
+	{
+		// add the original text-edit listeners
+		for (ComponentListener cl : prevCompListeners) {
+			painter.addComponentListener(cl);
+		}
+		for (MouseListener ml : prevMouseListeners) {
+			painter.addMouseListener(ml);
+		}
+		for (MouseMotionListener mml : prevMMotionListeners) {
+			painter.addMouseMotionListener(mml);		
+		}
+		for (KeyListener kl : prevKeyListeners) {
+			editor.addKeyListener(kl);
+		}
 	}
 	
 	public void updateInterface(ArrayList<Handle> numbers)
