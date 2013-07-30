@@ -138,7 +138,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		
 		for (int tab=0; tab<code.length; tab++)
 		{
-			ta.setText(code[tab].getSavedProgram());
+//			ta.setText(code[tab].getSavedProgram());
+			ta.setText(((TweakEditor)ta.editor).tweakMode.baseCode[tab]);
 			for (Handle n : numbers)
 			{
 				// handle only interface points in tab 'tab'.
@@ -154,7 +155,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		}
 		
 		ta.setText(prevText);
-		ta.scrollTo(prevScroll, 0);
+		ta.scrollTo(prevScroll, 0);	
 	}
 
 	/**
@@ -166,8 +167,9 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		int charInc = 0;
 		int currentTab = ta.editor.getSketch().getCurrentCodeIndex();
 		SketchCode sc = ta.editor.getSketch().getCode(currentTab);
-		String code = sc.getSavedProgram();
-
+//		String code = sc.getSavedProgram();
+		String code = ((TweakEditor)ta.editor).tweakMode.baseCode[currentTab];
+		
 		for (Handle n : numbers)
 		{
 			if (n.tabIndex != currentTab)

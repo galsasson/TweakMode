@@ -114,15 +114,23 @@ public class TweakEditor extends JavaEditor
 	}
 	
 	public void stopInteractiveMode()
-	{
-		if (wasCodeModified()) {
+	{				
+		tweakTextArea.stopInteractiveMode();
+
+		// must check before we remove the spaces
+		boolean modified = wasCodeModified();
+				
+		// remove space from the code (before and after)
+		removeSpacesFromCode();
+
+		if (modified) {
 			// ask to keep the values
 			int ret = Base.showYesNoQuestion(this, "Sketch Tweak", 
 									"Keep the changes?", 
 									"You changed some values in your sketch. Would you like to keep the changes?");
 			if (ret == 1) {
 				// Don't keep changes
-				loadSavedSketch();
+				loadSavedCode();
 				// update the painter to draw the new (old) code
 				tweakTextArea.invalidate();
 			}
@@ -131,8 +139,6 @@ public class TweakEditor extends JavaEditor
 				sketch.setModified(true);
 			}
 		}
-		
-		tweakTextArea.stopInteractiveMode();
 	}
 	
 	public void updateInterface(ArrayList<Handle> numbers)
@@ -151,8 +157,10 @@ public class TweakEditor extends JavaEditor
 	
 	private boolean wasCodeModified()
 	{
-		for (SketchCode c : sketch.getCode()) {
-			if (!c.getProgram().equals(c.getSavedProgram())) {
+		SketchCode[] code = sketch.getCode();
+		for (int i=0; i<code.length; i++) {
+//			if (!c.getProgram().equals(c.getSavedProgram())) {
+			if (!code[i].getProgram().equals(tweakMode.baseCode[i])) {
 				return true;
 			}
 		}
@@ -160,18 +168,50 @@ public class TweakEditor extends JavaEditor
 		return false;
 	}
 	
-	private void loadSavedSketch()
+	public void replaceEditorCode(String[] newCode)
 	{
-		for (SketchCode c : sketch.getCode()) {
-			if (!c.getProgram().equals(c.getSavedProgram())) {
-				c.setProgram(c.getSavedProgram());		
-				// set document to null so the text editor will refresh program contents
-				// when the document tab is being clicked
-				c.setDocument(null);
+		SketchCode[] code = sketch.getCode();
+		for (int i=0; i<code.length; i++) {
+			if (!code[i].getProgram().equals(newCode[i])) {
+				code[i].setProgram(newCode[i]);		
+				/* Wild Hack: set document to null so the text editor will refresh 
+				   the program contents when the document tab is being clicked */
+				code[i].setDocument(null);
 			}
 		}
 		
 		// this will update the current code		
+		setCode(sketch.getCurrentCode());
+	}
+	
+	private void loadSavedCode()
+	{
+		SketchCode[] code = sketch.getCode();
+		for (int i=0; i<code.length; i++) {
+			if (!code[i].getProgram().equals(code[i].getSavedProgram())) {
+				code[i].setProgram(code[i].getSavedProgram());		
+				/* Wild Hack: set document to null so the text editor will refresh 
+				   the program contents when the document tab is being clicked */
+				code[i].setDocument(null);
+			}
+		}
+		
+		// this will update the current code
+		setCode(sketch.getCurrentCode());
+	}
+	
+	private void removeSpacesFromCode()
+	{
+		SketchCode[] code = sketch.getCode();
+		for (int i=0; i<code.length; i++) {
+			String c = code[i].getProgram();
+			c = c.substring(10, c.length()-10);
+			code[i].setProgram(c);
+			/* Wild Hack: set document to null so the text editor will refresh
+			   the program contents when the document tab is being clicked */
+			code[i].setDocument(null);
+		}
+		// this will update the current code
 		setCode(sketch.getCurrentCode());
 	}
 }

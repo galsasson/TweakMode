@@ -115,13 +115,19 @@ public class TweakMode extends JavaMode {
 			return null;	
 		}
     	
-		//initBaseCode(sketch);
+		initBaseCode(sketch);
     	
 		/* parse the saved sketch to get all numbers */
 		ArrayList<Handle> numbers = getAllNumbers(sketch);
     	
 		/* add our code to the sketch */
 		launchInteractive = automateSketch(sketch, numbers);
+		
+		if (launchInteractive) {
+			// replace editor code with baseCode 
+			// (contains space before and after the original code)
+			editor.replaceEditorCode(baseCode);
+		}
     	
 		JavaBuild build = new JavaBuild(sketch);
 		String appletClassName = build.build(false);
@@ -136,14 +142,9 @@ public class TweakMode extends JavaMode {
 				}
 			}).start();
           
-			if (launchInteractive) {
-				// annoying bug: editor shows the modified code
-				revertSketch(sketch);
-          
+			if (launchInteractive) { 
 				editor.updateInterface(numbers);
 				editor.startInteractiveMode();
-			}
-			else {
 			}
 
 			return runtime;
@@ -180,7 +181,8 @@ public class TweakMode extends JavaMode {
     	for (int tab=0; tab<code.length; tab++)
     	{
     		int charInc = 0;
-			String c = code[tab].getSavedProgram();
+//			String c = code[tab].getSavedProgram();
+			String c = baseCode[tab];
 			for (Handle n : numbers)
     		{
     			// handle only numbers that belong to the current tab
@@ -287,7 +289,8 @@ public class TweakMode extends JavaMode {
     	String varPrefix = "numbersense";
     	for (int i=0; i<code.length; i++)
     	{
-    		String c = code[i].getSavedProgram();
+//    		String c = code[i].getSavedProgram();
+			String c = baseCode[i];
     		Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.?\\d*");
     		Matcher m = p.matcher(c);
         
@@ -334,24 +337,10 @@ public class TweakMode extends JavaMode {
 		for (int i=0; i<code.length; i++)
 		{
 			baseCode[i] = new String(code[i].getSavedProgram());
-			baseCode[i] = "\n\n\n\n\n\n\n\n\n\n" + baseCode[i];
-			baseCode[i] += "\n\n\n\n\n\n\n\n\n\n";
+			baseCode[i] = "\n\n\n\n\n\n\n\n\n\n" + baseCode[i] + "\n\n\n\n\n\n\n\n\n\n";
 		} 
 	}
-	
-    /**
-	* After compiling the modified sketch, bring it back the original code to show in PDE
-	*/
-    private void revertSketch(Sketch sketch)
-    {
-    	SketchCode[] code = sketch.getCode();
-    	
-    	for (int i=0; i<code.length; i++)
-    	{
-    		code[i].setProgram(code[i].getSavedProgram());
-    	}
-    }
-    
+	    
     private int countLines(String str)
     {
     	String[] lines = str.split("\r\n|\n\r|\n|\r");
