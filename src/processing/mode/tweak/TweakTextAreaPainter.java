@@ -190,8 +190,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	{
 			// don't paint while we do the stuff below
 			/* by default setText will scroll all the way to the end
-			 * remember current scroll position
-			 * TODO: this doesn't work yet for horizontal scroll */
+			 * remember current scroll position */
 			int scrollLine = ta.getScrollPosition();
 			int scrollHor = ta.getHorizontalScroll();
 			ta.setText(code);			
