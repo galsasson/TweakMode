@@ -136,7 +136,9 @@ public class TweakEditor extends JavaEditor
 			}
 			else {
 				// the new values are already present, just make sure the user can save
-				sketch.setModified(true);
+				for (SketchCode c : sketch.getCode()) {
+					c.setModified(true);
+				}
 			}
 		}
 	}
