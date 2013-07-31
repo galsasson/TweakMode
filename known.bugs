@@ -1,5 +1,6 @@
 Known Bugs: 20.07.2013 (Gal Sasson)
 - Caret is visible in run mode (can be also controlled (might be a feature))
+- Error messages that come from compilation contain the wrong line number
 
 Known Bugs: 29.07.2013 (Gal Sasson)
 - cannot run sketch using the video library: 'library not found'
