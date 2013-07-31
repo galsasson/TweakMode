@@ -205,7 +205,7 @@ public class TweakEditor extends JavaEditor
 		SketchCode[] code = sketch.getCode();
 		for (int i=0; i<code.length; i++) {
 			String c = code[i].getProgram();
-			c = c.substring(tweakMode.SPACE_AMOUNT, c.length() - tweakMode.SPACE_AMOUNT);
+			c = c.substring(TweakMode.SPACE_AMOUNT, c.length() - TweakMode.SPACE_AMOUNT);
 			code[i].setProgram(c);
 			/* Wild Hack: set document to null so the text editor will refresh
 			   the program contents when the document tab is being clicked */
