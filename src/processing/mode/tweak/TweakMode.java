@@ -31,11 +31,26 @@ public class TweakMode extends JavaMode {
 	
 	final static int SPACE_AMOUNT = 15;
 	
-    public TweakMode(Base base, File folder) {
-        super(base, folder);
-        
-        dumpModifiedCode = false;
-    }
+	public TweakMode(Base base, File folder) 
+	{
+		super(base, folder);
+
+		// needed so that core libraries like opengl, etc. are loaded.
+		for (Mode m : base.getModeList()) {
+			if (m.getClass() == JavaMode.class) {
+				JavaMode jMode = (JavaMode) m;
+				librariesFolder = jMode.getLibrariesFolder();
+				rebuildLibraryList(); 
+				break;
+			}
+		}
+
+		// Fetch examples and reference from java mode
+		examplesFolder = Base.getContentFile("modes/java/examples");
+		referenceFolder = Base.getContentFile("modes/java/reference");
+
+		dumpModifiedCode = false;
+	}
 
     /**
      * Return the pretty/printable/menu name for this mode. This is separate
@@ -108,7 +123,7 @@ public class TweakMode extends JavaMode {
 	@Override
 	public Runner handleRun(Sketch sketch, RunnerListener listener) throws SketchException 
 	{
-		boolean launchInteractive;
+		boolean launchInteractive = false;
 		System.out.println("Tweak: run");
 
 		if (sketch.isModified()) {
@@ -119,10 +134,10 @@ public class TweakMode extends JavaMode {
     	
 		initBaseCode(sketch);
     	
-		/* parse the saved sketch to get all numbers */
+		// parse the saved sketch to get all numbers
 		ArrayList<Handle> numbers = getAllNumbers(sketch);
     	
-		/* add our code to the sketch */
+		// add our code to the sketch
 		launchInteractive = automateSketch(sketch, numbers);
 		
 		JavaBuild build = new JavaBuild(sketch);
@@ -142,8 +157,7 @@ public class TweakMode extends JavaMode {
 
 				// replace editor code with baseCode 
 				// (contains space before and after the original code)
-				editor.initEditorCode(baseCode, numbers);
-				
+				editor.initEditorCode(baseCode, numbers);				
 				editor.updateInterface(numbers);
 				editor.startInteractiveMode();
 			}
@@ -296,6 +310,8 @@ public class TweakMode extends JavaMode {
     		while (m.find())
     		{
     			int start = m.start()+1;
+    			int end = m.end();
+    			
     			// if its a negative, include the '-' sign
     			if (c.charAt(start-1) == '-') {
     				if (isNegativeSign(start-2, c)) {
@@ -318,18 +334,22 @@ public class TweakMode extends JavaMode {
     				    			
     			 
     			int line = countLines(c.substring(0, start)) - 1;			// zero based
-				String value = c.substring(start, m.end());
+				String value = c.substring(start, end);
 				//value
     			String name;
     			if (value.contains(".")) {
+    				// remove any 'f' after the number
+    				if (c.charAt(m.end()) == 'f') {
+    					end++;
+    				}
     				// consider this as a float
         			name = varPrefix + "_float[" + floatVarCount +"]";
-        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, start, m.end()));
+        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, start, end));
     				floatVarCount++;
     			} else {
     				// consider this as an int
         			name = varPrefix + "_int[" + intVarCount +"]";
-        			numbers.add(new Handle("int", name, intVarCount, value, i, line, start, m.end()));
+        			numbers.add(new Handle("int", name, intVarCount, value, i, line, start, end));
     				intVarCount++;
     			}    			
     		}

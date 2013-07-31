@@ -3,12 +3,12 @@ Known Bugs: 20.07.2013 (Gal Sasson)
 - Error messages that come from compilation contain the wrong line number
 
 Known Bugs: 29.07.2013 (Gal Sasson)
-- cannot run sketch using the video library: 'library not found'
+* cannot run sketch using the video library: 'library not found' ** fixed
 
 Known Bugs: 28.07.2013 (Gal Sasson)
 * negative numbers (e.g. -23) are treated like positive (e.g. 23) ** fixed
 * processing: play button should be set off with sketch cannot be run (Mode.handleRun returns null) ** fixed
-- missing examples
+* missing examples ** fixed
 
 Known Bugs: 27.07.2013 (Gal Sasson)
 * when quiting a run, ask/update code. ** done
