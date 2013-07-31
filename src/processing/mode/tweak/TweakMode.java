@@ -142,7 +142,7 @@ public class TweakMode extends JavaMode {
 
 				// replace editor code with baseCode 
 				// (contains space before and after the original code)
-				editor.replaceEditorCode(baseCode);
+				editor.initEditorCode(baseCode, numbers);
 				
 				editor.updateInterface(numbers);
 				editor.startInteractiveMode();
@@ -295,31 +295,41 @@ public class TweakMode extends JavaMode {
         
     		while (m.find())
     		{
+    			int start = m.start()+1;
+    			// if its a negative, include the '-' sign
+    			if (c.charAt(start-1) == '-') {
+    				if (isNegativeSign(start-2, c)) {
+    					start--;
+    				}
+    			}
+
     			// special case for ignoring (0x...)
     			if (c.charAt(m.end()) == 'x' ||
     				c.charAt(m.end()) == 'X')
     				continue;
     			
     			// special case for ignoring number inside a string ("")
-    			if (isInsideString(m.start(), c))
+    			if (isInsideString(start, c))
     				continue;
     			
     			// beware of the global assignment (bug from 26.07.2013)
     			if (isGlobal(m.start(), c))
     				continue;
-    			
-    			int line = countLines(c.substring(0, m.start())) - 1;			// zero based
-    			String value = m.group(0).substring(1, m.group(0).length());
+    				    			
+    			 
+    			int line = countLines(c.substring(0, start)) - 1;			// zero based
+				String value = c.substring(start, m.end());
+				//value
     			String name;
     			if (value.contains(".")) {
     				// consider this as a float
         			name = varPrefix + "_float[" + floatVarCount +"]";
-        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, m.start()+1, m.end()));
+        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, start, m.end()));
     				floatVarCount++;
     			} else {
     				// consider this as an int
         			name = varPrefix + "_int[" + intVarCount +"]";
-        			numbers.add(new Handle("int", name, intVarCount, value, i, line, m.start()+1, m.end()));
+        			numbers.add(new Handle("int", name, intVarCount, value, i, line, start, m.end()));
     				intVarCount++;
     			}    			
     		}
@@ -398,6 +408,32 @@ public class TweakMode extends JavaMode {
     	
     	if (cbOpenNum == cbCloseNum)
     		return true;
+    	
+    	return false;
+    }
+    
+    private boolean isNegativeSign(int pos, String code)
+    {
+    	// go back and look for ,{[(=?:
+    	for (int i=pos; i>=0; i--)
+    	{
+    		char c = code.charAt(i);
+    		if (c == ' ') {
+    			continue;
+    		}
+    		if (c == ',' ||
+    				c == '{' || 
+    				c == '[' || 
+    				c == '(' || 
+    				c == '=' ||
+    				c == '?' ||
+    				c == ':') {
+    			return true;
+    		}
+    		else {
+    			return false;
+    		}
+    	}
     	
     	return false;
     }

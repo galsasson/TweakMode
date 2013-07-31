@@ -39,12 +39,13 @@ public class Handle {
 
 		if (type == "int") {
 			value = newValue = Integer.parseInt(strValue);
+			strNewValue = new String(strValue);
 		} 
 		else {
 			value = newValue = Float.parseFloat(strValue);
+			strNewValue = String.format("%.03f", (Float)newValue);
 		}		
 		
-		strNewValue = new String(strValue);
 		newStartChar = startChar;
 		newEndChar = endChar;
 		

@@ -167,17 +167,32 @@ public class TweakEditor extends JavaEditor
 		return false;
 	}
 	
-	public void replaceEditorCode(String[] newCode)
+	public void initEditorCode(String[] newCode, ArrayList<Handle> handles)
 	{
-		SketchCode[] code = sketch.getCode();
-		for (int i=0; i<code.length; i++) {
-			if (!code[i].getProgram().equals(newCode[i])) {
-				code[i].setProgram(newCode[i]);		
+		SketchCode[] sketchCode = sketch.getCode();
+		for (int tab=0; tab<newCode.length; tab++) {
+				// beautify the numbers
+				int charInc = 0;
+				String code = newCode[tab];
+		
+				for (Handle n : handles)
+				{
+					if (n.tabIndex != tab)
+						continue;
+			
+					int s = n.startChar + charInc;
+					int e = n.endChar + charInc;
+					code = replaceString(code, s, e, n.strNewValue);
+					n.newStartChar = n.startChar + charInc;
+					charInc += n.strNewValue.length() - n.strValue.length();
+					n.newEndChar = n.endChar + charInc;
+				}
+				
+				sketchCode[tab].setProgram(code);		
 				/* Wild Hack: set document to null so the text editor will refresh 
 				   the program contents when the document tab is being clicked */
-				code[i].setDocument(null);
+				sketchCode[tab].setDocument(null);
 			}
-		}
 		
 		// this will update the current code		
 		setCode(sketch.getCurrentCode());
@@ -212,5 +227,10 @@ public class TweakEditor extends JavaEditor
 		}
 		// this will update the current code
 		setCode(sketch.getCurrentCode());
+	}
+	
+	private String replaceString(String str, int start, int end, String put)
+	{
+		return str.substring(0, start) + put + str.substring(end, str.length());
 	}
 }
