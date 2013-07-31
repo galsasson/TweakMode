@@ -6,23 +6,23 @@ Known Bugs: 29.07.2013 (Gal Sasson)
 
 Known Bugs: 28.07.2013 (Gal Sasson)
 - negative numbers (e.g. -23) are treated like positive (e.g. 23)
-- processing: play button should be set off with sketch cannot be run (Mode.handleRun returns null) ** fixed
+* processing: play button should be set off with sketch cannot be run (Mode.handleRun returns null) ** fixed
 - missing examples
 
 Known Bugs: 27.07.2013 (Gal Sasson)
-- when quiting a run, ask/update code. ** done
-- limit the mapping of the drag strength in getStrength() ** fixed
+* when quiting a run, ask/update code. ** done
+* limit the mapping of the drag strength in getStrength() ** fixed
 
 Known Bugs: 26.07.2013 (Gal Sasson)
-- cannot maintain horizontal scroll when dragging a number point. ** fixed
-- user must click 'stop' to go back to edit mode (closing sketch window does not work like 'stop') ** fixed
+* cannot maintain horizontal scroll when dragging a number point. ** fixed
+* user must click 'stop' to go back to edit mode (closing sketch window does not work like 'stop') ** fixed
 
 todo:
 
 - better way to handle float/int detection (currently checking for the existance of '.')
-- find better scheme to handle increment/decrement of numbers (slow at the beginning and goes faster later) ** done using normal distribution
-- add +/- of how much was incremented. ** done
+* find better scheme to handle increment/decrement of numbers (slow at the beginning and goes faster later) ** done using normal distribution
+* add +/- of how much was incremented. ** done
 - add text input for number value
-- add space before and after the code. ** done
-- add three number modes: integers, floats and floats between -1 - 1. ** done. handling ints and floats differently
+* add space before and after the code. ** done
+* add three number modes: integers, floats and floats between -1 - 1. ** done. handling ints and floats differently
 
