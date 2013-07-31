@@ -188,7 +188,7 @@ public class Handle {
 		AffineTransform prevTrans = g2d.getTransform();
 		g2d.translate(x, y);
 		
-		g2d.setColor(new Color(160, 20, 20));	// dark red
+		g2d.setColor(ColorScheme.getInstance().redStrokeColor);
 				
 		// draw bottom line
 		g2d.fillRect(0, 0, width, 2);
@@ -205,13 +205,13 @@ public class Handle {
 		
 		// draw marker
 		if (highlight) {
-			g2d.setColor(new Color(228,240,91, 127));
+			g2d.setColor(ColorScheme.getInstance().markerColor);
 			g2d.fillRect(-2, -height, width+4, height);
 		}
 		
 		// draw increment text
 		if (showDiff) {
-			g2d.setColor(new Color(160, 20, 20));	// dark red
+			g2d.setColor(ColorScheme.getInstance().redStrokeColor);
 			float diffW = g2d.getFontMetrics().charsWidth(strDiff.toCharArray(), 0, strDiff.length());
 			float xx = 0;
 			if (ballX > diffW+9) {

@@ -159,7 +159,6 @@ public class TweakEditor extends JavaEditor
 	{
 		SketchCode[] code = sketch.getCode();
 		for (int i=0; i<code.length; i++) {
-//			if (!c.getProgram().equals(c.getSavedProgram())) {
 			if (!code[i].getProgram().equals(tweakMode.baseCode[i])) {
 				return true;
 			}

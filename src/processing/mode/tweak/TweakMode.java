@@ -182,7 +182,6 @@ public class TweakMode extends JavaMode {
     	for (int tab=0; tab<code.length; tab++)
     	{
     		int charInc = 0;
-//			String c = code[tab].getSavedProgram();
 			String c = baseCode[tab];
 			for (Handle n : numbers)
     		{
@@ -290,7 +289,6 @@ public class TweakMode extends JavaMode {
     	String varPrefix = "numbersense";
     	for (int i=0; i<code.length; i++)
     	{
-//    		String c = code[i].getSavedProgram();
 			String c = baseCode[i];
     		Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.?\\d*");
     		Matcher m = p.matcher(c);

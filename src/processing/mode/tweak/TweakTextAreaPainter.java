@@ -76,7 +76,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	* @param gfx The graphics context
 	*/
 	@Override
-	public synchronized void paint(Graphics gfx) {
+	public synchronized void paint(Graphics gfx)
+	{
 		super.paint(gfx);
 
 		if (interactiveMode && numbers!=null)
@@ -85,13 +86,14 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			Graphics2D g2d = (Graphics2D)gfx;
 			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 				RenderingHints.VALUE_ANTIALIAS_ON);
-
+			
 			for (Handle n : numbers)
 			{
 				// draw only interface points that belong to the current tab
-				if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
+				if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex()) {
 					continue;
-				
+				}
+
 				// update n position and width, and draw it
 				int lineStartChar = ta.getLineStartOffset(n.line);
 				int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
@@ -138,7 +140,6 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		
 		for (int tab=0; tab<code.length; tab++)
 		{
-//			ta.setText(code[tab].getSavedProgram());
 			ta.setText(((TweakEditor)ta.editor).tweakMode.baseCode[tab]);
 			for (Handle n : numbers)
 			{
@@ -167,7 +168,6 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		int charInc = 0;
 		int currentTab = ta.editor.getSketch().getCurrentCodeIndex();
 		SketchCode sc = ta.editor.getSketch().getCode(currentTab);
-//		String code = sc.getSavedProgram();
 		String code = ((TweakEditor)ta.editor).tweakMode.baseCode[currentTab];
 		
 		for (Handle n : numbers)
