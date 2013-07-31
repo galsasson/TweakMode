@@ -271,6 +271,9 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (mouseNumber != null) {
+			if (!mouseNumber.valueChanged()) {
+				mouseNumber.resetBallPos();
+			}
 			mouseNumber = null;
 			repaint();
 		}

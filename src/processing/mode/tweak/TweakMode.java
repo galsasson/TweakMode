@@ -27,6 +27,8 @@ public class TweakMode extends JavaMode {
 	
 	String baseCode[];
 	
+	public ArrayList<Handle> handles;
+	
 	public boolean dumpModifiedCode;
 	
 	final static int SPACE_AMOUNT = 15;
@@ -126,7 +128,7 @@ public class TweakMode extends JavaMode {
 		boolean launchInteractive = false;
 		System.out.println("Tweak: run");
 
-		if (sketch.isModified()) {
+		if (isSketchModified(sketch)) {
 			editor.deactivateRun();
 			Base.showMessage("Save", "Please save the sketch before running in Tweak Mode.");
 			return null;	
@@ -135,10 +137,10 @@ public class TweakMode extends JavaMode {
 		initBaseCode(sketch);
     	
 		// parse the saved sketch to get all numbers
-		ArrayList<Handle> numbers = getAllNumbers(sketch);
+		handles = getAllNumbers(sketch);
     	
 		// add our code to the sketch
-		launchInteractive = automateSketch(sketch, numbers);
+		launchInteractive = automateSketch(sketch, handles);
 		
 		JavaBuild build = new JavaBuild(sketch);
 		String appletClassName = build.build(false);
@@ -149,7 +151,7 @@ public class TweakMode extends JavaMode {
 					runtime.launch(false);  // this blocks until finished
               
 					// executed when the sketch quits
-					editor.stopInteractiveMode();
+					editor.stopInteractiveMode(handles);
 				}
 			}).start();
           
@@ -157,8 +159,8 @@ public class TweakMode extends JavaMode {
 
 				// replace editor code with baseCode 
 				// (contains space before and after the original code)
-				editor.initEditorCode(baseCode, numbers);				
-				editor.updateInterface(numbers);
+				editor.initEditorCode(baseCode, handles);				
+				editor.updateInterface(handles);
 				editor.startInteractiveMode();
 			}
 
@@ -473,7 +475,7 @@ public class TweakMode extends JavaMode {
 		}
 		return count;
 	}
-	
+
 	private int howManyFloats(ArrayList<Handle> numbers)
 	{
 		int count = 0;
@@ -483,7 +485,7 @@ public class TweakMode extends JavaMode {
 		}
 		return count;
 	}
-	
+
 	private int getSetupStart(String code)
 	{
 		int pos;
@@ -492,5 +494,15 @@ public class TweakMode extends JavaMode {
 		pos = code.indexOf("{", pos);
 		return pos+1;
 	}
-	
+
+	private boolean isSketchModified(Sketch sketch)
+	{
+		for (SketchCode sc : sketch.getCode()) {
+			if (sc.isModified()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

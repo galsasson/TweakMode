@@ -73,7 +73,7 @@ public class TweakEditor extends JavaEditor
 	protected TweakTextArea tweakTextArea;
 
 	protected TweakEditor(Base base, String path, EditorState state,
-			final Mode mode) {
+							final Mode mode) {
 		super(base, path, state, mode);
 
 		tweakMode = (TweakMode)mode;
@@ -113,33 +113,64 @@ public class TweakEditor extends JavaEditor
 		tweakTextArea.startInteractiveMode();
 	}
 	
-	public void stopInteractiveMode()
+	public void stopInteractiveMode(ArrayList<Handle> handles)
 	{				
 		tweakTextArea.stopInteractiveMode();
 
-		// must check before we remove the spaces
-		boolean modified = wasCodeModified();
-				
 		// remove space from the code (before and after)
 		removeSpacesFromCode();
 
+		// check which tabs were modified
+		boolean modified = false;
+		boolean[] modifiedTabs = getModifiedTabs(handles);
+		for (boolean mod : modifiedTabs) {
+			if (mod) {
+				modified = true;
+				break;
+			}
+		}
+				
 		if (modified) {
 			// ask to keep the values
 			int ret = Base.showYesNoQuestion(this, "Sketch Tweak", 
 									"Keep the changes?", 
 									"You changed some values in your sketch. Would you like to keep the changes?");
 			if (ret == 1) {
-				// Don't keep changes
+				// don't keep changes
 				loadSavedCode();
-				// update the painter to draw the new (old) code
+				// update the painter to draw the saved (old) code
 				tweakTextArea.invalidate();
 			}
 			else {
-				// the new values are already present, just make sure the user can save
-				for (SketchCode c : sketch.getCode()) {
-					c.setModified(true);
+				// keep changes
+				// the new values are already present, just make sure the user can save the modified tabs
+				for (int i=0; i<sketch.getCodeCount(); i++) {
+					if (modifiedTabs[i]) {
+						sketch.getCode(i).setModified(true);
+					}
+					else {
+						// load the saved code of tabs that didn't change
+						// (there might be formatting changes that should not be saved)
+						sketch.getCode(i).setProgram(sketch.getCode(i).getSavedProgram());		
+						/* Wild Hack: set document to null so the text editor will refresh 
+						   the program contents when the document tab is being clicked */
+						sketch.getCode(i).setDocument(null);
+						
+						if (i == sketch.getCurrentCodeIndex()) {
+							// this will update the current code		
+							setCode(sketch.getCurrentCode());
+						}
+					}
 				}
+				// repaint the editor header (show the modified tabs)
+				header.repaint();
 			}
+		}
+		else {
+			// number values were not modified but we need to load the saved code
+			// because of some formatting changes
+			loadSavedCode();
+			tweakTextArea.invalidate();
 		}
 	}
 	
@@ -157,16 +188,17 @@ public class TweakEditor extends JavaEditor
 		toolbar.deactivate(TweakToolbar.RUN);
 	}
 	
-	private boolean wasCodeModified()
+	private boolean[] getModifiedTabs(ArrayList<Handle> handles)
 	{
-		SketchCode[] code = sketch.getCode();
-		for (int i=0; i<code.length; i++) {
-			if (!code[i].getProgram().equals(tweakMode.baseCode[i])) {
-				return true;
+		boolean[] modifiedTabs = new boolean[sketch.getCodeCount()];
+		
+		for (Handle h : handles) {
+			if (h.valueChanged()) {
+				modifiedTabs[h.tabIndex] = true;
 			}
 		}
 		
-		return false;
+		return modifiedTabs;
 	}
 	
 	public void initEditorCode(String[] newCode, ArrayList<Handle> handles)

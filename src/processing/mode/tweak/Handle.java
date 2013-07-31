@@ -256,4 +256,14 @@ public class Handle {
 		
 		return false;		
 	}
+	
+	public boolean valueChanged()
+	{
+		if (type == "int") {
+			return !((Integer)value).equals((Integer)newValue);
+		}
+		else {
+			return !((Float)value).equals((Float)newValue);
+		}
+	}
 }
