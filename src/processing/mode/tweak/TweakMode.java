@@ -29,6 +29,8 @@ public class TweakMode extends JavaMode {
 	
 	public boolean dumpModifiedCode;
 	
+	final static int SPACE_AMOUNT = 15;
+	
     public TweakMode(Base base, File folder) {
         super(base, folder);
         
@@ -123,12 +125,6 @@ public class TweakMode extends JavaMode {
 		/* add our code to the sketch */
 		launchInteractive = automateSketch(sketch, numbers);
 		
-		if (launchInteractive) {
-			// replace editor code with baseCode 
-			// (contains space before and after the original code)
-			editor.replaceEditorCode(baseCode);
-		}
-    	
 		JavaBuild build = new JavaBuild(sketch);
 		String appletClassName = build.build(false);
 		if (appletClassName != null) {
@@ -143,6 +139,11 @@ public class TweakMode extends JavaMode {
 			}).start();
           
 			if (launchInteractive) { 
+
+				// replace editor code with baseCode 
+				// (contains space before and after the original code)
+				editor.replaceEditorCode(baseCode);
+				
 				editor.updateInterface(numbers);
 				editor.startInteractiveMode();
 			}
@@ -333,11 +334,17 @@ public class TweakMode extends JavaMode {
 	{
     	SketchCode[] code = sketch.getCode();
     	
+    	String space = new String();
+    	
+    	for (int i=0; i<SPACE_AMOUNT; i++) {
+    		space += "\n";
+    	}
+    	
     	baseCode = new String[code.length];
 		for (int i=0; i<code.length; i++)
 		{
 			baseCode[i] = new String(code[i].getSavedProgram());
-			baseCode[i] = "\n\n\n\n\n\n\n\n\n\n" + baseCode[i] + "\n\n\n\n\n\n\n\n\n\n";
+			baseCode[i] = space + baseCode[i] + space;
 		} 
 	}
 	    

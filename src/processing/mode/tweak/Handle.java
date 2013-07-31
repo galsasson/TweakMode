@@ -214,7 +214,7 @@ public class Handle {
 			g2d.setColor(new Color(160, 20, 20));	// dark red
 			float diffW = g2d.getFontMetrics().charsWidth(strDiff.toCharArray(), 0, strDiff.length());
 			float xx = 0;
-			if (ballX > diffW) {
+			if (ballX > diffW+9) {
 				xx = anchorX+ballX-diffW-5;
 			}
 			else if (ballX < -diffW-5) {
