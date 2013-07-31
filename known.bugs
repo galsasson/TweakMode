@@ -1,4 +1,7 @@
-Known Bugs: 20.07.2013 (Gal Sasson)
+Known Bugs: 31.07.2013 (Gal Sasson)
+- when stopping a sketch, keep changes window pops up even if there is no change
+
+Known Bugs: 30.07.2013 (Gal Sasson)
 - Caret is visible in run mode (can be also controlled (might be a feature))
 - Error messages that come from compilation contain the wrong line number
 
