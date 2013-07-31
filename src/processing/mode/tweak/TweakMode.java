@@ -283,65 +283,66 @@ public class TweakMode extends JavaMode {
     	return true;
     }
 
-    /**
-     * Get a list of all the numbers in this sketch
-     * @param sketch: the sketch to take the numbers from
-     * @return
-     * ArrayList<Number> of all the numbers
-     */
-    public ArrayList<Handle> getAllNumbers(Sketch sketch)
-    {
-    	SketchCode[] code = sketch.getCode();
-    	int intVarCount = 0;
-    	int floatVarCount = 0;
+	/**
+	 * Get a list of all the numbers in this sketch
+	 * @param sketch: the sketch to take the numbers from
+	 * @return
+	 * ArrayList<Number> of all the numbers
+	 */
+	public ArrayList<Handle> getAllNumbers(Sketch sketch)
+	{
+		SketchCode[] code = sketch.getCode();
+		int intVarCount = 0;
+		int floatVarCount = 0;
 
-    	ArrayList<Handle> numbers = new ArrayList<Handle>();
+		ArrayList<Handle> numbers = new ArrayList<Handle>();
 
-    	/* for every number found:
-    	 * save its type (int/float), name, value and position in code.
-    	 */
-    	String varPrefix = "numbersense";
-    	for (int i=0; i<code.length; i++)
-    	{
+		/* for every number found:
+		 * save its type (int/float), name, value and position in code.
+		 */
+		String varPrefix = "numbersense";
+		for (int i=0; i<code.length; i++)
+		{
 			String c = baseCode[i];
-    		Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.?\\d*");
-    		Matcher m = p.matcher(c);
+			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.?\\d*");
+			Matcher m = p.matcher(c);
         
-    		while (m.find())
-    		{
-    			int start = m.start()+1;
-    			int end = m.end();
-    			
-    			// if its a negative, include the '-' sign
-    			if (c.charAt(start-1) == '-') {
-    				if (isNegativeSign(start-2, c)) {
-    					start--;
-    				}
-    			}
+			while (m.find())
+			{
+				int start = m.start()+1;
+				int end = m.end();
 
-    			// special case for ignoring (0x...)
-    			if (c.charAt(m.end()) == 'x' ||
-    				c.charAt(m.end()) == 'X')
-    				continue;
-    			
-    			// special case for ignoring number inside a string ("")
-    			if (isInsideString(start, c))
-    				continue;
-    			
-    			// beware of the global assignment (bug from 26.07.2013)
-    			if (isGlobal(m.start(), c))
-    				continue;
-    				    			
-    			 
-    			int line = countLines(c.substring(0, start)) - 1;			// zero based
+				// remove any 'f' after the number
+				if (c.charAt(end) == 'f') {
+					end++;
+				}
+				
+				// if its a negative, include the '-' sign
+				if (c.charAt(start-1) == '-') {
+					if (isNegativeSign(start-2, c)) {
+						start--;
+					}
+				}
+
+				// special case for ignoring (0x...)
+				if (c.charAt(m.end()) == 'x' ||
+						c.charAt(m.end()) == 'X') {
+					continue;
+				}
+
+				// special case for ignoring number inside a string ("")
+				if (isInsideString(start, c))
+					continue;
+
+				// beware of the global assignment (bug from 26.07.2013)
+				if (isGlobal(m.start(), c))
+					continue;
+
+				int line = countLines(c.substring(0, start)) - 1;			// zero based
 				String value = c.substring(start, end);
 				//value
     			String name;
     			if (value.contains(".")) {
-    				// remove any 'f' after the number
-    				if (c.charAt(m.end()) == 'f') {
-    					end++;
-    				}
     				// consider this as a float
         			name = varPrefix + "_float[" + floatVarCount +"]";
         			numbers.add(new Handle("float", name, floatVarCount, value, i, line, start, end));
