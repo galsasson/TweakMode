@@ -306,7 +306,7 @@ public class TweakMode extends JavaMode {
 		for (int i=0; i<code.length; i++)
 		{
 			String c = baseCode[i];
-			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=]\\d+\\.?\\d*");
+			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
 			Matcher m = p.matcher(c);
         
 			while (m.find())
@@ -435,31 +435,29 @@ public class TweakMode extends JavaMode {
     	return false;
     }
     
-    private boolean isNegativeSign(int pos, String code)
-    {
-    	// go back and look for ,{[(=?:
-    	for (int i=pos; i>=0; i--)
-    	{
-    		char c = code.charAt(i);
-    		if (c == ' ') {
-    			continue;
-    		}
-    		if (c == ',' ||
-    				c == '{' || 
-    				c == '[' || 
-    				c == '(' || 
-    				c == '=' ||
-    				c == '?' ||
-    				c == ':') {
-    			return true;
-    		}
-    		else {
-    			return false;
-    		}
-    	}
-    	
-    	return false;
-    }
+	private boolean isNegativeSign(int pos, String code)
+	{
+		// go back and look for ,{[(=?+-/*%<>:&|^!~
+		for (int i=pos; i>=0; i--)
+		{
+			char c = code.charAt(i);
+			if (c == ' ') {
+				continue;
+			}
+			if (c==',' || c=='{' || c=='[' || c=='(' ||
+					c=='=' || c=='?' || c=='+' || c=='-' ||
+					c=='/' || c=='*' || c=='%' || c=='<' ||
+					c=='>' || c==':' || c=='&' || c=='|' ||
+					c=='^' || c=='!' || c=='~') {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		return false;
+	}
     
 	private String replaceString(String str, int start, int end, String put)
 	{
