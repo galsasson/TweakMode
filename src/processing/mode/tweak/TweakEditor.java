@@ -164,6 +164,7 @@ public class TweakEditor extends JavaEditor
 				}
 				// repaint the editor header (show the modified tabs)
 				header.repaint();
+				tweakTextArea.invalidate();
 			}
 		}
 		else {

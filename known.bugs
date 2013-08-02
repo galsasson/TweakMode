@@ -1,3 +1,6 @@
+Known Bugs: 01.08.2013 (Gal Sasson)
+* run sketch, exit, save changes, then delete lines (duplicate lines apear) ** fixed
+
 Known Bugs: 31.07.2013 (Gal Sasson)
 * when stopping a sketch, keep changes window pops up even if there is no change ** fixed
 
