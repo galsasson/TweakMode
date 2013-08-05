@@ -151,6 +151,7 @@ public class TweakMode extends JavaMode {
 					runtime.launch(false);  // this blocks until finished
               
 					// executed when the sketch quits
+					editor.initEditorCode(baseCode, handles, false);
 					editor.stopInteractiveMode(handles);
 				}
 			}).start();
@@ -159,7 +160,7 @@ public class TweakMode extends JavaMode {
 
 				// replace editor code with baseCode 
 				// (contains space before and after the original code)
-				editor.initEditorCode(baseCode, handles);				
+				editor.initEditorCode(baseCode, handles, true);				
 				editor.updateInterface(handles);
 				editor.startInteractiveMode();
 			}

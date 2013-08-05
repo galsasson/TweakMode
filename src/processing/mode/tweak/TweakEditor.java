@@ -202,7 +202,7 @@ public class TweakEditor extends JavaEditor
 		return modifiedTabs;
 	}
 	
-	public void initEditorCode(String[] newCode, ArrayList<Handle> handles)
+	public void initEditorCode(String[] newCode, ArrayList<Handle> handles, boolean withSpaces)
 	{
 		SketchCode[] sketchCode = sketch.getCode();
 		for (int tab=0; tab<newCode.length; tab++) {
@@ -217,9 +217,16 @@ public class TweakEditor extends JavaEditor
 			
 					int s = n.startChar + charInc;
 					int e = n.endChar + charInc;
-					code = replaceString(code, s, e, n.strNewValue);
+					String newStr = n.strNewValue;
+					if (withSpaces) {
+						newStr = "  " + newStr + "  ";
+					}
+					code = replaceString(code, s, e, newStr);
 					n.newStartChar = n.startChar + charInc;
 					charInc += n.strNewValue.length() - n.strValue.length();
+					if (withSpaces) {
+						charInc += 4;
+					}
 					n.newEndChar = n.endChar + charInc;
 				}
 				

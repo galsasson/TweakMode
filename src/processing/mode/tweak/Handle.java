@@ -39,7 +39,7 @@ public class Handle {
 
 		if (type == "int") {
 			value = newValue = Integer.parseInt(strValue);
-			strNewValue = new String(strValue);
+			strNewValue = String.format("%d", (Integer)newValue);
 		} 
 		else {
 			value = newValue = Float.parseFloat(strValue);
@@ -102,7 +102,7 @@ public class Handle {
 		if (type == "int") {
 			// how many pixels above/below the line
 			newValue = Integer.parseInt(strValue) + (int)strength;		
-			strNewValue = Integer.toString((Integer)newValue);
+			strNewValue = String.format("%d", (Integer)newValue);
 			int diff = (Integer)newValue - (Integer)value;
 			if (diff != 0) {
 				strDiff = Integer.toString(diff);

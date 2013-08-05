@@ -177,9 +177,9 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			
 			int s = n.startChar + charInc;
 			int e = n.endChar + charInc;
-			code = replaceString(code, s, e, n.strNewValue);
+			code = replaceString(code, s, e, "  " + n.strNewValue + "  ");
 			n.newStartChar = n.startChar + charInc;
-			charInc += n.strNewValue.length() - n.strValue.length();
+			charInc += n.strNewValue.length() - n.strValue.length() + 4;
 			n.newEndChar = n.endChar + charInc;
 		}
 		
