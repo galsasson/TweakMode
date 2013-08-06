@@ -31,7 +31,7 @@ public class TweakMode extends JavaMode {
 	
 	public boolean dumpModifiedCode;
 	
-	final static int SPACE_AMOUNT = 15;
+	final static int SPACE_AMOUNT = 0;
 	
 	public TweakMode(Base base, File folder) 
 	{
@@ -159,8 +159,7 @@ public class TweakMode extends JavaMode {
 			if (launchInteractive) { 
 
 				// replace editor code with baseCode 
-				// (contains space before and after the original code)
-				editor.initEditorCode(baseCode, handles, true);				
+				editor.initEditorCode(baseCode, handles, false);				
 				editor.updateInterface(handles);
 				editor.startInteractiveMode();
 			}
@@ -223,50 +222,54 @@ public class TweakMode extends JavaMode {
     	// header contains variable declaration, initialization, and OSC listener function
     	String header;
     	header = "\n\n" +
-    		 "/***************************/\n" +
-    		 "/* MODIFIED BY NUMBERSENSE */\n" +
-		 	 "/***************************/\n" +
+    		 "/*************************/\n" +
+    		 "/* MODIFIED BY TWEAKMODE */\n" +
+		 	 "/*************************/\n" +
     		 "\n\n";
     	
     	// add needed OSC imports and the global OSC object
     	header += "import oscP5.*;\n";
     	header += "import netP5.*;\n\n";
-    	header += "OscP5 oscP5;\n\n";
+    	header += "OscP5 tweakmode_oscP5;\n\n";
     	
     	// write a declaration for int and float arrays
-    	header += "int[] numbersense_int = new int["+howManyInts(numbers)+"];\n";
-    	header += "float[] numbersense_float = new float["+howManyFloats(numbers)+"];\n\n";
-    	header += "void numbersense_initAllVars() {\n";
+    	header += "int[] tweakmode_int = new int["+howManyInts(numbers)+"];\n";
+    	header += "float[] tweakmode_float = new float["+howManyFloats(numbers)+"];\n\n";
+    	
+    	/* add the class for the OSC event handler that will respond to our messages */
+    	header += "public class TweakMode_OscHandler {\n" +
+    			  "  public void oscEvent(OscMessage msg) {\n" +
+                  "    String type = msg.addrPattern();\n" +
+                  "    if (type.contains(\"/tm_change_int\")) {\n" +
+                  "      int index = msg.get(0).intValue();\n" +
+                  "      int value = msg.get(1).intValue();\n" +    
+                  "      tweakmode_int[index] = value;\n" +
+                  "    }\n" +
+                  "    else if (type.contains(\"/tm_change_float\")) {\n" +
+                  "      int index = msg.get(0).intValue();\n" +
+                  "      float value = msg.get(1).floatValue();\n" +   
+                  "      tweakmode_float[index] = value;\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}\n";
+    	header += "TweakMode_OscHandler tweakmode_oscHandler = new TweakMode_OscHandler();\n";
+
+    	header += "void tweakmode_initAllVars() {\n";
     	for (Handle n : numbers)
     	{
     		header += "  " + n.name + " = " + n.strValue + ";\n";
     	}
     	header += "}\n\n";
-    	header += "void numbersense_initOSC() {\n";
-    	header += "  oscP5 = new OscP5(this,57110);\n";
+    	header += "void tweakmode_initOSC() {\n";
+    	header += "  tweakmode_oscP5 = new OscP5(tweakmode_oscHandler,57110);\n";
     	header += "}\n";
     	
     	header += "\n\n\n\n\n";
     	
-    	/* add the OSC event handler that will respond to our messages */
-        header += "void oscEvent(OscMessage msg) {\n" +
-                  "  String type = msg.addrPattern();\n" +
-                  "  if (type.contains(\"/ns_change_int\")) {\n" +
-                  "    int index = msg.get(0).intValue();\n" +
-                  "    int value = msg.get(1).intValue();\n" +    
-                  "    numbersense_int[index] = value;\n" +
-                  "  }\n" +
-                  "  else if (type.contains(\"/ns_change_float\")) {\n" +
-                  "    int index = msg.get(0).intValue();\n" +
-                  "    float value = msg.get(1).floatValue();\n" +   
-                  "    numbersense_float[index] = value;\n" +
-                  "  }\n" +
-                  "}\n";
-    	
     	// add call to our initAllVars and initOSC functions from the setup() function.
-    	String addToSetup = "\n  numbersense_initAllVars();\n  numbersense_initOSC();\n\n";
+    	String addToSetup = "\n  tweakmode_initAllVars();\n  tweakmode_initOSC();\n\n";
     	int pos = getSetupStart(c);
-    	c = replaceString(c, pos, pos, addToSetup);    	
+    	c = replaceString(c, pos, pos, addToSetup);
 
     	code[0].setProgram(header + c);
     	
@@ -303,7 +306,7 @@ public class TweakMode extends JavaMode {
 		/* for every number found:
 		 * save its type (int/float), name, value and position in code.
 		 */
-		String varPrefix = "numbersense";
+		String varPrefix = "tweakmode";
 		for (int i=0; i<code.length; i++)
 		{
 			String c = baseCode[i];
@@ -348,12 +351,13 @@ public class TweakMode extends JavaMode {
     			if (value.contains(".")) {
     				// consider this as a float
         			name = varPrefix + "_float[" + floatVarCount +"]";
-        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, start, end));
+        			int decimalDigits = getNumDigitsAfterPoint(value);
+        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, start, end, decimalDigits));
     				floatVarCount++;
     			} else {
     				// consider this as an int
         			name = varPrefix + "_int[" + intVarCount +"]";
-        			numbers.add(new Handle("int", name, intVarCount, value, i, line, start, end));
+        			numbers.add(new Handle("int", name, intVarCount, value, i, line, start, end, 0));
     				intVarCount++;
     			}    			
     		}
@@ -502,6 +506,16 @@ public class TweakMode extends JavaMode {
 			}
 		}
 		return false;
+	}
+	
+	private int getNumDigitsAfterPoint(String number)
+	{
+		String tmp[] = number.split("\\.");
+		
+		if (tmp.length < 2)
+			return 0;
+		
+		return tmp[1].length();
 	}
 
 }

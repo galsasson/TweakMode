@@ -5,14 +5,16 @@ import java.awt.Color;
 public class ColorScheme {
 	private static ColorScheme instance = null;
 	public Color redStrokeColor;
-	public Color grayPaneColor;
+	public Color progressFillColor;
+	public Color progressEmptyColor;
 	public Color markerColor;
 	
 	private ColorScheme()
 	{
 		redStrokeColor = new Color(160, 20, 20);	// dark red
-		grayPaneColor = new Color(0, 0, 0, 180);
-		markerColor = new Color(228, 240, 91, 127);
+		progressEmptyColor = new Color(180, 180, 180, 200);
+		progressFillColor = new Color(0, 0, 0, 200);
+		markerColor = new Color(228, 200, 91, 127);
 	}
 	
 	public static ColorScheme getInstance() {

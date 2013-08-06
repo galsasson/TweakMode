@@ -26,10 +26,13 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.ArrayList;
 
@@ -57,9 +60,14 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	
 	public boolean interactiveMode = false;
 	public ArrayList<Handle> numbers = null;
-	public Handle mouseNumber = null;
+	public Handle mouseHandle = null;
 	
 	int cursorType;
+	BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+
+	// Create a new blank cursor.
+	Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(
+	    cursorImg, new Point(0, 0), "blank cursor");
 	
 	private final Object paintMutex = new Object();
 	
@@ -101,7 +109,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
 				n.setPos(x, y);
 				n.setWidth(end - x);
-				n.draw(g2d, n==mouseNumber);
+				n.draw(g2d, n==mouseHandle);
 			}
 		}
 	}
@@ -177,9 +185,9 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			
 			int s = n.startChar + charInc;
 			int e = n.endChar + charInc;
-			code = replaceString(code, s, e, "  " + n.strNewValue + "  ");
+			code = replaceString(code, s, e, n.strNewValue);
 			n.newStartChar = n.startChar + charInc;
-			charInc += n.strNewValue.length() - n.strValue.length() + 4;
+			charInc += n.strNewValue.length() - n.strValue.length();
 			n.newEndChar = n.endChar + charInc;
 		}
 		
@@ -221,11 +229,11 @@ public class TweakTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		if (mouseNumber != null) {
-			mouseNumber.setBallPos(e.getX(),  e.getY());
+		if (mouseHandle != null) {
+			mouseHandle.setCurrentX(e.getX());
 			
 			// send OSC message - value changed.
-			oscSendNewValue(mouseNumber);
+			oscSendNewValue(mouseHandle);
 
 			// update code text with the new value
 			updateCodeText();
@@ -236,19 +244,6 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	
 	@Override
 	public void mouseExited(MouseEvent e) {
-		if (mouseNumber != null)
-		{
-			mouseNumber.resetBallPos();
-			
-			// send OSC message - value changed.
-			oscSendNewValue(mouseNumber);
-
-			// update code text with the new value
-			updateCodeText();			
-
-			mouseNumber = null;
-			repaint();
-		}
 	}
 
 	@Override
@@ -259,22 +254,25 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
 				continue;
 			
-			if (n.pickBall(e.getX(), e.getY()))
+			if (n.pick(e.getX(), e.getY()))
 			{
-				mouseNumber = n;
-				mouseNumber.setBallPos(e.getX(), e.getY());
+				cursorType = -1;
+				this.setCursor(blankCursor);
+				mouseHandle = n;
+				mouseHandle.setCenterX(e.getX());
 				repaint();
+				return;
 			}
-		}	
+		}		
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if (mouseNumber != null) {
-			if (!mouseNumber.valueChanged()) {
-				mouseNumber.resetBallPos();
-			}
-			mouseNumber = null;
+		if (mouseHandle != null) {
+			mouseHandle.resetProgress();
+			mouseHandle = null;
+			cursorType = Cursor.DEFAULT_CURSOR;
+			setCursor(new Cursor(cursorType));
 			repaint();
 		}
 	}
@@ -293,11 +291,12 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				setCursor(new Cursor(cursorType));
 				return;
 			}
-			if (cursorType == Cursor.HAND_CURSOR) {
-				cursorType = Cursor.DEFAULT_CURSOR;
-				setCursor(new Cursor(cursorType));
-			}
-		}	
+		}
+		
+		if (cursorType == Cursor.HAND_CURSOR) {
+			cursorType = Cursor.DEFAULT_CURSOR;
+			setCursor(new Cursor(cursorType));
+		}
 	}
 
 	@Override

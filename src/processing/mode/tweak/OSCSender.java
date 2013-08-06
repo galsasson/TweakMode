@@ -12,7 +12,7 @@ public class OSCSender {
 		ArrayList<Object> args = new ArrayList<Object>();
 		args.add(new Integer(index));
 		args.add(new Float(val));
-		OSCMessage msg = new OSCMessage("/ns_change_float", args);
+		OSCMessage msg = new OSCMessage("/tm_change_float", args);
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {
@@ -26,7 +26,7 @@ public class OSCSender {
 		ArrayList<Object> args = new ArrayList<Object>();
 		args.add(new Integer(index));
 		args.add(new Integer(val));
-		OSCMessage msg = new OSCMessage("/ns_change_int", args);
+		OSCMessage msg = new OSCMessage("/tm_change_int", args);
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {
