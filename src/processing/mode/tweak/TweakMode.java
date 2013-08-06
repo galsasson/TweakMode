@@ -135,9 +135,11 @@ public class TweakMode extends JavaMode {
 		}
     	
 		initBaseCode(sketch);
+		// check for "// tweak" comment in the sketch 
+		boolean requiresTweak = sketchHasTweakComment();
     	
-		// parse the saved sketch to get all numbers
-		handles = getAllNumbers(sketch);
+		// parse the saved sketch to get all (or only with "//tweak" comment) numbers
+		handles = getAllNumbers(sketch, requiresTweak);
     	
 		// add our code to the sketch
 		launchInteractive = automateSketch(sketch, handles);
@@ -295,9 +297,9 @@ public class TweakMode extends JavaMode {
 	 * @return
 	 * ArrayList<Number> of all the numbers
 	 */
-	public ArrayList<Handle> getAllNumbers(Sketch sketch)
+	public ArrayList<Handle> getAllNumbers(Sketch sketch, boolean requiresComment)
 	{
-		SketchCode[] code = sketch.getCode();
+//		SketchCode[] code = sketch.getCode();
 		int intVarCount = 0;
 		int floatVarCount = 0;
 
@@ -307,7 +309,7 @@ public class TweakMode extends JavaMode {
 		 * save its type (int/float), name, value and position in code.
 		 */
 		String varPrefix = "tweakmode";
-		for (int i=0; i<code.length; i++)
+		for (int i=0; i<baseCode.length; i++)
 		{
 			String c = baseCode[i];
 			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
@@ -317,6 +319,13 @@ public class TweakMode extends JavaMode {
 			{
 				int start = m.start()+1;
 				int end = m.end();
+				
+				if (requiresComment) {
+					// only add numbers that have the "// tweak" comment in their line
+					if (!lineHasTweakComment(start, c)) {
+						continue;
+					}
+				}
 
 				// remove any 'f' after the number
 				if (c.charAt(end) == 'f') {
@@ -382,6 +391,39 @@ public class TweakMode extends JavaMode {
 			baseCode[i] = new String(code[i].getSavedProgram());
 			baseCode[i] = space + baseCode[i] + space;
 		} 
+	}
+	
+	private boolean lineHasTweakComment(int pos, String code)
+	{
+		int lineEnd = code.indexOf("\n", pos);
+		if (lineEnd < 0) {
+			return false;
+		}
+		
+		String line = code.substring(pos, lineEnd);		
+		return hasTweakComment(line);
+	}
+	
+	public boolean sketchHasTweakComment()
+	{
+		for (String code : baseCode) {
+			if (hasTweakComment(code)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private boolean hasTweakComment(String code)
+	{
+		Pattern p = Pattern.compile("\\/\\/.*tweak", Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(code);
+		if (m.find()) {
+			return true;
+		}
+		
+		return false;		
 	}
 	    
     private int countLines(String str)
