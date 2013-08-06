@@ -16,7 +16,7 @@ public class OSCSender {
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {
-			 System.out.println("Couldn't send");
+			 System.out.println("Couldn't send new value of float " + index);
 		 }
 	}
 	
@@ -30,7 +30,7 @@ public class OSCSender {
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {
-			 System.out.println("Couldn't send");
+			 System.out.println("Couldn't send new value of int " + index);
 		 }
 	}
 

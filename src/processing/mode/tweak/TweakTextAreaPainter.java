@@ -226,6 +226,28 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			}
 		} catch (Exception e) { System.out.println("error sending OSC message!"); }
 	}
+	
+	public void updateCursor(int mouseX, int mouseY)
+	{
+		for (Handle n : numbers)
+		{
+			// skip numbers not in the current tag
+			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
+				continue;
+			
+			if (n.pick(mouseX, mouseY))
+			{
+				cursorType = Cursor.HAND_CURSOR;
+				setCursor(new Cursor(cursorType));
+				return;
+			}
+		}
+		
+		if (cursorType == Cursor.HAND_CURSOR || cursorType == -1) {
+			cursorType = Cursor.DEFAULT_CURSOR;
+			setCursor(new Cursor(cursorType));
+		}		
+	}
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
@@ -271,32 +293,15 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		if (mouseHandle != null) {
 			mouseHandle.resetProgress();
 			mouseHandle = null;
-			cursorType = Cursor.DEFAULT_CURSOR;
-			setCursor(new Cursor(cursorType));
+			
+			updateCursor(e.getX(), e.getY());
 			repaint();
 		}
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		for (Handle n : numbers)
-		{
-			// skip numbers not in the current tag
-			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
-				continue;
-			
-			if (n.pick(e.getX(), e.getY()))
-			{
-				cursorType = Cursor.HAND_CURSOR;
-				setCursor(new Cursor(cursorType));
-				return;
-			}
-		}
-		
-		if (cursorType == Cursor.HAND_CURSOR) {
-			cursorType = Cursor.DEFAULT_CURSOR;
-			setCursor(new Cursor(cursorType));
-		}
+		updateCursor(e.getX(), e.getY());
 	}
 
 	@Override

@@ -76,7 +76,7 @@ public class Handle {
 		this.height = height;
 		
 		// create drag ball
-		progBar = new HProgressBar(height);
+		progBar = new HProgressBar(height, width);
 	}
 	
 	public void setCenterX(int mx)
@@ -149,6 +149,7 @@ public class Handle {
 	{
 		width = w;
 		
+		progBar.setWidth(w);
 	}
 	
 	public void draw(Graphics2D g2d, boolean hasFocus)
@@ -156,10 +157,6 @@ public class Handle {
 		AffineTransform prevTrans = g2d.getTransform();
 		g2d.translate(x, y);
 		if (hasFocus) {
-			// draw marker
-			g2d.setColor(ColorScheme.getInstance().progressFillColor);
-			g2d.fillRect(0, 0, width, 2);
-			
 			if (progBar != null) {
 				g2d.translate(width/2, 2);
 				progBar.draw(g2d);
