@@ -133,19 +133,26 @@ public class TweakMode extends JavaMode {
 			Base.showMessage("Save", "Please save the sketch before running in Tweak Mode.");
 			return null;	
 		}
-    	
+		
+		/* first try to build the unmodified code */
+		JavaBuild build = new JavaBuild(sketch);		
+		String appletClassName = build.build(false);
+		if (appletClassName == null) {
+			return null;
+		}
+		
+		/* if compilation passed, modify the code and build again */
 		initBaseCode(sketch);
 		// check for "// tweak" comment in the sketch 
 		boolean requiresTweak = sketchHasTweakComment();
-    	
 		// parse the saved sketch to get all (or only with "//tweak" comment) numbers
 		handles = getAllNumbers(sketch, requiresTweak);
-    	
 		// add our code to the sketch
 		launchInteractive = automateSketch(sketch, handles);
 		
-		JavaBuild build = new JavaBuild(sketch);
-		String appletClassName = build.build(false);
+		build = new JavaBuild(sketch);
+		appletClassName = build.build(false);
+		
 		if (appletClassName != null) {
 			final Runner runtime = new Runner(build, listener);
 			new Thread(new Runnable() {
