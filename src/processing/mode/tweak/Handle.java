@@ -156,6 +156,11 @@ public class Handle {
 	{
 		AffineTransform prevTrans = g2d.getTransform();
 		g2d.translate(x, y);
+		
+		// draw underline on the number
+		g2d.setColor(ColorScheme.getInstance().progressFillColor);
+		g2d.drawLine(0, 0, width, 0);
+		
 		if (hasFocus) {
 			if (progBar != null) {
 				g2d.translate(width/2, 2);

@@ -8,6 +8,7 @@ public class ColorScheme {
 	public Color progressFillColor;
 	public Color progressEmptyColor;
 	public Color markerColor;
+	public Color whitePaneColor;
 	
 	private ColorScheme()
 	{
@@ -15,6 +16,7 @@ public class ColorScheme {
 		progressEmptyColor = new Color(180, 180, 180, 200);
 		progressFillColor = new Color(0, 0, 0, 200);
 		markerColor = new Color(228, 200, 91, 127);
+		whitePaneColor = new Color(255, 255, 255, 120);
 	}
 	
 	public static ColorScheme getInstance() {

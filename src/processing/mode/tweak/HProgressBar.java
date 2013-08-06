@@ -53,10 +53,11 @@ public class HProgressBar {
 		g2d.translate(x, y);
 		
 		// draw white cover on text line
-		g2d.setColor(new Color(255, 255, 255, 120));
+		g2d.setColor(ColorScheme.getInstance().whitePaneColor);
 		g2d.fillRect(-200+lPolyX, -size, 200-lPolyX-width/2, size+1);
 		g2d.fillRect(width/2, -size, 200+rPolyX, size+1);
 		
+		// draw left and right triangles and leading line
 		g2d.setColor(ColorScheme.getInstance().progressFillColor);
 		AffineTransform tmp = g2d.getTransform();
 		g2d.translate(-width/2 - 5 + lPolyX, -size/2);
