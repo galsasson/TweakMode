@@ -1,3 +1,6 @@
+Known Bugs:
+- sometimes 0.0 is displayed as -0.0 (might be a rounding issue)
+
 Known Bugs: 01.08.2013 (Gal Sasson)
 * run sketch, exit, save changes, then delete lines (duplicate lines apear) ** fixed
 
