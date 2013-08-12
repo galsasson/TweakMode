@@ -144,9 +144,10 @@ public class TweakMode extends JavaMode {
 		/* if compilation passed, modify the code and build again */
 		initBaseCode(sketch);
 		// check for "// tweak" comment in the sketch 
-		boolean requiresTweak = sketchHasTweakComment();
+		boolean requiresTweak = SketchParser.containsTweakComment(baseCode);
 		// parse the saved sketch to get all (or only with "//tweak" comment) numbers
-		handles = getAllNumbers(sketch, requiresTweak);
+		SketchParser parser = new SketchParser(baseCode, requiresTweak);
+		handles = parser.allHandles;
 		// add our code to the sketch
 		launchInteractive = automateSketch(sketch, handles);
 		
@@ -297,91 +298,7 @@ public class TweakMode extends JavaMode {
 
     	return true;
     }
-
-	/**
-	 * Get a list of all the numbers in this sketch
-	 * @param sketch: the sketch to take the numbers from
-	 * @return
-	 * ArrayList<Number> of all the numbers
-	 */
-	public ArrayList<Handle> getAllNumbers(Sketch sketch, boolean requiresComment)
-	{
-//		SketchCode[] code = sketch.getCode();
-		int intVarCount = 0;
-		int floatVarCount = 0;
-
-		ArrayList<Handle> numbers = new ArrayList<Handle>();
-
-		/* for every number found:
-		 * save its type (int/float), name, value and position in code.
-		 */
-		String varPrefix = "tweakmode";
-		for (int i=0; i<baseCode.length; i++)
-		{
-			String c = baseCode[i];
-			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
-			Matcher m = p.matcher(c);
-        
-			while (m.find())
-			{
-				int start = m.start()+1;
-				int end = m.end();
-				
-				if (requiresComment) {
-					// only add numbers that have the "// tweak" comment in their line
-					if (!lineHasTweakComment(start, c)) {
-						continue;
-					}
-				}
-
-				// remove any 'f' after the number
-				if (c.charAt(end) == 'f') {
-					end++;
-				}
-				
-				// if its a negative, include the '-' sign
-				if (c.charAt(start-1) == '-') {
-					if (isNegativeSign(start-2, c)) {
-						start--;
-					}
-				}
-
-				// special case for ignoring (0x...)
-				if (c.charAt(m.end()) == 'x' ||
-						c.charAt(m.end()) == 'X') {
-					continue;
-				}
-
-				// special case for ignoring number inside a string ("")
-				if (isInsideString(start, c))
-					continue;
-
-				// beware of the global assignment (bug from 26.07.2013)
-				if (isGlobal(m.start(), c))
-					continue;
-
-				int line = countLines(c.substring(0, start)) - 1;			// zero based
-				String value = c.substring(start, end);
-				//value
-    			String name;
-    			if (value.contains(".")) {
-    				// consider this as a float
-        			name = varPrefix + "_float[" + floatVarCount +"]";
-        			int decimalDigits = getNumDigitsAfterPoint(value);
-        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, start, end, decimalDigits));
-    				floatVarCount++;
-    			} else {
-    				// consider this as an int
-        			name = varPrefix + "_int[" + intVarCount +"]";
-        			numbers.add(new Handle("int", name, intVarCount, value, i, line, start, end, 0));
-    				intVarCount++;
-    			}    			
-    		}
-    	}
-
-    	return numbers;
-    }
-
+    
 	private void initBaseCode(Sketch sketch)
 	{
     	SketchCode[] code = sketch.getCode();
@@ -400,119 +317,6 @@ public class TweakMode extends JavaMode {
 		} 
 	}
 	
-	private boolean lineHasTweakComment(int pos, String code)
-	{
-		int lineEnd = code.indexOf("\n", pos);
-		if (lineEnd < 0) {
-			return false;
-		}
-		
-		String line = code.substring(pos, lineEnd);		
-		return hasTweakComment(line);
-	}
-	
-	public boolean sketchHasTweakComment()
-	{
-		for (String code : baseCode) {
-			if (hasTweakComment(code)) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
-	private boolean hasTweakComment(String code)
-	{
-		Pattern p = Pattern.compile("\\/\\/.*tweak", Pattern.CASE_INSENSITIVE);
-		Matcher m = p.matcher(code);
-		if (m.find()) {
-			return true;
-		}
-		
-		return false;		
-	}
-	    
-    private int countLines(String str)
-    {
-    	String[] lines = str.split("\r\n|\n\r|\n|\r");
-    	return lines.length;
-    }
-    
-    /**
-     * Are we inside a string? (TODO: ignore comments in the code)
-     * @param pos
-     * position in the code
-     * @param code
-     * the code
-     * @return
-     */
-    private boolean isInsideString(int pos, String code)
-    {
-    	int quoteNum = 0;	// count '"'
-    	
-    	for (int c = pos; c>=0 && code.charAt(c) != '\n'; c--)
-    	{
-    		if (code.charAt(c) == '"')
-    			quoteNum++;
-    	}
-    	
-    	if (quoteNum%2 == 1)
-    		return true;
-    	
-    	return false;
-    }
-    
-    /**
-     * Is this a global position?
-     * @param pos position
-     * @param code code
-     * @return
-     * true if the position 'pos' is in global scope in the code 'code'
-     */
-    private boolean isGlobal(int pos, String code)
-    {
-    	int cbOpenNum = 0;	// count '{'
-    	int cbCloseNum = 0;	// count '}'
-    	
-    	for (int c=pos; c>=0; c--)
-    	{
-    		if (code.charAt(c) == '{')
-    			cbOpenNum++;
-    		else if (code.charAt(c) == '}')
-    			cbCloseNum++;
-    	}
-    	
-    	if (cbOpenNum == cbCloseNum)
-    		return true;
-    	
-    	return false;
-    }
-    
-	private boolean isNegativeSign(int pos, String code)
-	{
-		// go back and look for ,{[(=?+-/*%<>:&|^!~
-		for (int i=pos; i>=0; i--)
-		{
-			char c = code.charAt(i);
-			if (c == ' ') {
-				continue;
-			}
-			if (c==',' || c=='{' || c=='[' || c=='(' ||
-					c=='=' || c=='?' || c=='+' || c=='-' ||
-					c=='/' || c=='*' || c=='%' || c=='<' ||
-					c=='>' || c==':' || c=='&' || c=='|' ||
-					c=='^' || c=='!' || c=='~') {
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-
-		return false;
-	}
-    
 	private String replaceString(String str, int start, int end, String put)
 	{
 		return str.substring(0, start) + put + str.substring(end, str.length());
@@ -555,16 +359,5 @@ public class TweakMode extends JavaMode {
 			}
 		}
 		return false;
-	}
-	
-	private int getNumDigitsAfterPoint(String number)
-	{
-		String tmp[] = number.split("\\.");
-		
-		if (tmp.length < 2)
-			return 0;
-		
-		return tmp[1].length();
-	}
-
+	}	
 }
