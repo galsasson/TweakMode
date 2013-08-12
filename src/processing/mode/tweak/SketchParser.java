@@ -1,6 +1,7 @@
 package processing.mode.tweak;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,29 +26,27 @@ public class SketchParser
 		allHandles = new ArrayList<Handle>();
 		
 		allHandles.addAll(findAllNumbers());
+		allHandles.addAll(findAllHexNumbers());
+		
+		Collections.sort(allHandles, new HandleComparator());
 	}
 	
 	/**
 	 * Get a list of all the numbers in this sketch
 	 * @return
-	 * Handles representing numbers in the sketch (excluding hexadecimals)
+	 * list of all numbers in the sketch (excluding hexadecimals)
 	 */
 	private ArrayList<Handle> findAllNumbers()
 	{
-		int intVarCount = 0;
-		int floatVarCount = 0;
-
 		ArrayList<Handle> numbers = new ArrayList<Handle>();
 
 		/* for every number found:
 		 * save its type (int/float), name, value and position in code.
 		 */
-		String varPrefix = "tweakmode";
 		for (int i=0; i<codeTabs.length; i++)
 		{
 			String c = codeTabs[i];
 			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
-			// this is for hex numbers: [\[\{<>(),\s\+\-\/\*^%!|&=?:~]0x[\dabcdef]+
 			Matcher m = p.matcher(c);
         
 			while (m.find())
@@ -108,6 +107,64 @@ public class SketchParser
 
     	return numbers;
     }
+	
+	/**
+	 * Get a list of all the hexadecimal numbers in the code
+	 * @return
+	 * list of all hexadecimal numbers in the sketch
+	 */
+	private ArrayList<Handle> findAllHexNumbers()
+	{
+		ArrayList<Handle> numbers = new ArrayList<Handle>();
+
+		/* for every number found:
+		 * save its type (int/float), name, value and position in code.
+		 */
+		for (int i=0; i<codeTabs.length; i++)
+		{
+			String c = codeTabs[i];
+			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]0x[\\dabcdef]+");
+			Matcher m = p.matcher(c);
+        
+			while (m.find())
+			{
+				int start = m.start()+1;
+				int end = m.end();
+				
+				if (requiresComment) {
+					// only add numbers that have the "// tweak" comment in their line
+					if (!lineHasTweakComment(start, c)) {
+						continue;
+					}
+				}
+
+				// special case for ignoring number inside a string ("")
+				if (isInsideString(start, c))
+					continue;
+
+				// beware of the global assignment (bug from 26.07.2013)
+				if (isGlobal(m.start(), c))
+					continue;
+
+				int line = countLines(c.substring(0, start)) - 1;			// zero based
+				String value = c.substring(start, end);
+				String name = varPrefix + "_int[" + intVarCount + "]";
+				Handle handle;
+				try {
+					handle = new Handle("hex", name, intVarCount, value, i, line, start, end, 0);
+				}
+				catch (NumberFormatException e) {
+					// don't add this number
+					continue;
+				}
+				numbers.add(handle);
+				intVarCount++;
+    		}
+    	}
+
+    	return numbers;
+    }
+
 		
 	public static boolean containsTweakComment(String[] codeTabs)
 	{

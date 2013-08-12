@@ -215,7 +215,7 @@ public class TweakMode extends JavaMode {
 				// (put numbers list inside SketchCode?)
     			if (n.tabIndex != tab)
     				continue;
-    			
+
     			// replace number value with a variable
     			c = replaceString(c, n.startChar + charInc, n.endChar + charInc, n.name);
     			charInc += n.name.length() - n.strValue.length();
@@ -326,7 +326,7 @@ public class TweakMode extends JavaMode {
 	{
 		int count = 0;
 		for (Handle n : numbers) {
-			if (n.type == "int")
+			if (n.type == "int" || n.type == "hex")
 				count++;
 		}
 		return count;

@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
+import java.util.Comparator;
 
 public class Handle {
 	public String type;
@@ -50,12 +51,17 @@ public class Handle {
 			value = newValue = Integer.parseInt(strValue);
 			strNewValue = strValue;
 			textFormat = "%d";
-		} 
-		else {
+		}
+		else if (type == "hex") {
+			value = newValue = Integer.parseInt(strValue.substring(2, strValue.length()), 16);
+			strNewValue = strValue;
+			textFormat = "0x%x";
+		}
+		else if (type == "float") {
 			value = newValue = Float.parseFloat(strValue);
 			strNewValue = strValue;
 			textFormat = "%.0" + numDigits + "f";
-		}		
+		}
 		
 		newStartChar = startChar;
 		newEndChar = endChar;
@@ -106,28 +112,14 @@ public class Handle {
 		if (type == "int") {
 			newValue = (Integer)newValue + (int)change;		
 			strNewValue = String.format(textFormat, (Integer)newValue);
-//			int diff = (Integer)newValue - (Integer)value;
-//			if (diff != 0) {
-//				strDiff = Integer.toString(diff);
-//				if (diff > 0) strDiff = "+" + strDiff;
-//				showDiff = true;
-//			}
-//			else {
-//				showDiff = false;
-//			}
 		}
-		else {
+		else if (type == "hex") {
+			newValue = (Integer)newValue + (int)change;		
+			strNewValue = String.format(textFormat, (Integer)newValue);			
+		}
+		else if (type == "float") {
 			newValue = (Float)newValue + change;
 			strNewValue = String.format(textFormat, (Float)newValue);
-//			float diff = (Float)newValue - (Float)value;
-//			if (diff != 0) {
-//				strDiff = String.format("%f", diff);
-//				if (diff > 0) strDiff = "+" + strDiff;
-//				showDiff = true;
-//			}
-//			else {
-//				showDiff = false;
-//			}
 		}
 	}
 	
@@ -190,8 +182,26 @@ public class Handle {
 		if (type == "int") {
 			return !((Integer)value).equals((Integer)newValue);
 		}
+		else if (type == "hex") {
+			return (!((Integer)value).equals((Integer)newValue));
+		}
 		else {
 			return !((Float)value).equals((Float)newValue);
 		}
 	}
+}
+
+/*
+ * Used for sorting the handles by order of occurrence inside each tab 
+ */
+class HandleComparator implements Comparator<Handle> {
+    public int compare(Handle handle1, Handle handle2) {
+    	int tab = handle1.tabIndex - handle2.tabIndex;
+    	if (tab == 0) {
+    		return handle1.startChar - handle2.startChar;
+    	}
+    	else {
+    		return tab;
+    	}
+    }
 }
