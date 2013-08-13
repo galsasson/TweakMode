@@ -114,7 +114,10 @@ public class Handle {
 			strNewValue = String.format(textFormat, (Integer)newValue);
 		}
 		else if (type == "hex") {
-			newValue = (Integer)newValue + (int)change;		
+			newValue = (Integer)newValue + (int)change;
+			if (((Integer)newValue & 0x80000000) != 0) {
+				newValue = 0x7fffffff;
+			}
 			strNewValue = String.format(textFormat, (Integer)newValue);			
 		}
 		else if (type == "float") {
@@ -127,7 +130,6 @@ public class Handle {
 	{
 		int pixels = xCurrent - xLast;
 
-		
 		return (float)pixels*incValue;
 	}
 	
