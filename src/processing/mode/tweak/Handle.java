@@ -110,17 +110,25 @@ public class Handle {
 		float change = getChange();
 		
 		if (type == "int") {
-			newValue = (Integer)newValue + (int)change;		
+			if ((Integer)newValue + (int)change > Integer.MAX_VALUE ||
+					(Integer)newValue + (int)change < Integer.MIN_VALUE) {
+				change = 0;
+			}
+			newValue = (Integer)newValue + (int)change;
 			strNewValue = String.format(textFormat, (Integer)newValue);
 		}
 		else if (type == "hex") {
-			newValue = (Integer)newValue + (int)change;
-			if (((Integer)newValue & 0x80000000) != 0) {
-				newValue = 0x7fffffff;
+			if ((Integer)newValue + (int)change < 0) {
+				change = 0;
 			}
+			newValue = (Integer)newValue + (int)change;
 			strNewValue = String.format(textFormat, (Integer)newValue);			
 		}
 		else if (type == "float") {
+			if ((Float)newValue + change > Float.MAX_VALUE ||
+					(Float)newValue + change < Float.MIN_VALUE) {
+				change = 0;
+			}
 			newValue = (Float)newValue + change;
 			strNewValue = String.format(textFormat, (Float)newValue);
 		}
