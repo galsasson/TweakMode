@@ -139,12 +139,14 @@ public class SketchParser
 				}
 
 				// special case for ignoring number inside a string ("")
-				if (isInsideString(start, c))
+				if (isInsideString(start, c)) {
 					continue;
+				}
 
 				// beware of the global assignment (bug from 26.07.2013)
-				if (isGlobal(m.start(), c))
+				if (isGlobal(m.start(), c)) {
 					continue;
+				}
 
 				int line = countLines(c.substring(0, start)) - 1;			// zero based
 				String value = c.substring(start, end);

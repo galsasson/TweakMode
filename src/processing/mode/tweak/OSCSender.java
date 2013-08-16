@@ -31,7 +31,22 @@ public class OSCSender {
 			sender.send(msg);
 		 } catch (Exception e) {
 			 System.out.println("Couldn't send new value of int " + index);
+			 System.out.println(e.toString());
 		 }
 	}
 
+	public static void sendLong(int index, long val) throws Exception
+	{
+		OSCPortOut sender = new OSCPortOut();
+		ArrayList<Object> args = new ArrayList<Object>();
+		args.add(new Integer(index));
+		args.add(new Long(val));
+		OSCMessage msg = new OSCMessage("/tm_change_long", args);
+		 try {
+			sender.send(msg);
+		 } catch (Exception e) {
+			 System.out.println("Couldn't send new value of long " + index);
+			 System.out.println(e.toString());
+		 }
+	}
 }

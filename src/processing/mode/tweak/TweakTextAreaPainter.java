@@ -221,8 +221,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				OSCSender.sendInt(index, val);
 			}
 			else if (n.type == "hex") {
-				int val = Integer.parseInt(n.strNewValue.substring(2, n.strNewValue.length()), 16);
-				OSCSender.sendInt(index, val);
+				Long val = Long.parseLong(n.strNewValue.substring(2, n.strNewValue.length()), 16);
+				OSCSender.sendInt(index, val.intValue());
 			}
 			else if (n.type == "float") {
 				float val = Float.parseFloat(n.strNewValue);

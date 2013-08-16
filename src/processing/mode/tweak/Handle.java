@@ -53,7 +53,8 @@ public class Handle {
 			textFormat = "%d";
 		}
 		else if (type == "hex") {
-			value = newValue = Integer.parseInt(strValue.substring(2, strValue.length()), 16);
+			Long val = Long.parseLong(strValue.substring(2, strValue.length()), 16);
+			value = newValue = val.intValue();
 			strNewValue = strValue;
 			textFormat = "0x%x";
 		}
@@ -118,9 +119,6 @@ public class Handle {
 			strNewValue = String.format(textFormat, (Integer)newValue);
 		}
 		else if (type == "hex") {
-			if ((Integer)newValue + (int)change < 0) {
-				change = 0;
-			}
 			newValue = (Integer)newValue + (int)change;
 			strNewValue = String.format(textFormat, (Integer)newValue);			
 		}

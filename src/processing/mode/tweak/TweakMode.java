@@ -138,9 +138,10 @@ public class TweakMode extends JavaMode {
 		JavaBuild build = new JavaBuild(sketch);		
 		String appletClassName = build.build(false);
 		if (appletClassName == null) {
+			// unmodified build failed, so fail
 			return null;
 		}
-		
+
 		/* if compilation passed, modify the code and build again */
 		initBaseCode(sketch);
 		// check for "// tweak" comment in the sketch 
