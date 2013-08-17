@@ -53,7 +53,7 @@
 
         <mkdir dir="${build}" />
 
-        <javac srcdir="${src}" destdir="${build}" source="${java.target.version}" includeantruntime="false">
+        <javac srcdir="${src}" destdir="${build}" debug="true" source="${java.target.version}" includeantruntime="false">
             <classpath>
                 <path refid="library-classpath"/>
             </classpath>

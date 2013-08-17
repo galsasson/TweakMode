@@ -189,9 +189,9 @@ public class TweakTextArea extends JEditTextArea {
 		}
 	}
 	
-	public void updateInterface(ArrayList<Handle> numbers)
+	public void updateInterface(ArrayList<Handle> numbers, ArrayList<ColorControlBox> colorBoxes)
 	{
-		tweakPainter.updateInterface(numbers);
+		tweakPainter.updateInterface(numbers, colorBoxes);
 	}
 	
 }

@@ -28,6 +28,7 @@ public class TweakMode extends JavaMode {
 	String baseCode[];
 	
 	public ArrayList<Handle> handles;
+	public ArrayList<ColorControlBox> colorBoxes;
 	
 	public boolean dumpModifiedCode;
 	
@@ -149,6 +150,8 @@ public class TweakMode extends JavaMode {
 		// parse the saved sketch to get all (or only with "//tweak" comment) numbers
 		SketchParser parser = new SketchParser(baseCode, requiresTweak);
 		handles = parser.allHandles;
+		colorBoxes = parser.colorBoxes;
+		
 		// add our code to the sketch
 		launchInteractive = automateSketch(sketch, handles);
 		
@@ -171,7 +174,7 @@ public class TweakMode extends JavaMode {
 
 				// replace editor code with baseCode 
 				editor.initEditorCode(baseCode, handles, false);				
-				editor.updateInterface(handles);
+				editor.updateInterface(handles, colorBoxes);
 				editor.startInteractiveMode();
 			}
 

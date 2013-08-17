@@ -16,6 +16,8 @@ public class SketchParser
 	String[] codeTabs;
 	boolean requiresComment;
 	ArrayList<Handle> allHandles;
+	ArrayList<ColorMode> colorModes;
+	ArrayList<ColorControlBox> colorBoxes;
 	
 	public SketchParser(String[] codeTabs, boolean requiresComment)
 	{
@@ -27,8 +29,16 @@ public class SketchParser
 		
 		allHandles.addAll(findAllNumbers());
 		allHandles.addAll(findAllHexNumbers());
-		
 		Collections.sort(allHandles, new HandleComparator());
+		
+		// handle colors
+		colorModes = findAllColorModes();
+		colorBoxes = createColorBoxes();
+		for (ColorControlBox ccb : colorBoxes)
+		{
+			System.out.println("ccb: " + ccb.toString());
+		}
+		
 	}
 	
 	/**
@@ -167,7 +177,99 @@ public class SketchParser
     	return numbers;
     }
 
+	private ArrayList<ColorMode> findAllColorModes()
+	{
+		ArrayList<ColorMode> modes = new ArrayList<ColorMode>();
 		
+		for (String tab : codeTabs)
+		{
+			int index = -1;
+			// search for a call to colorMode function
+			while ((index = tab.indexOf("colorMode", index+1)) > -1) {
+				// found colorMode at index
+				index += 9;
+				int parOpen = tab.indexOf('(', index);
+				if (parOpen < 0) {
+					continue;
+				}
+				
+				int parClose = tab.indexOf(')', parOpen+1);
+				if (parClose < 0) {
+					continue;
+				}
+				
+				// try to parse this mode
+				String modeDesc = tab.substring(parOpen+1, parClose);
+				ColorMode newMode;
+				try {
+					newMode = ColorMode.fromString(modeDesc);
+				}
+				catch (Exception e) {
+					// failed to parse the mode, don't add
+					continue;
+				}
+				modes.add(newMode);
+			}
+		}
+		
+		if (modes.size() == 0) {
+			// create the default mode
+			modes.add(new ColorMode());
+		}
+		
+		return modes;
+	}
+	
+	private ArrayList<ColorControlBox> createColorBoxes()
+	{
+		ArrayList<ColorControlBox> ccbs = new ArrayList<ColorControlBox>();
+		
+		for (int i=0; i<codeTabs.length; i++)
+		{
+			String tab = codeTabs[i];
+			// search tab for the functions: 'color', 'fill', 'stroke', 'background', 'tint'
+			Pattern p = Pattern.compile("color\\(|color\\s\\(|fill[\\(\\s]|stroke[\\(\\s]|background[\\(\\s]|tint[\\(\\s]");
+			Matcher m = p.matcher(tab);
+			
+			while (m.find())
+			{
+				ArrayList<Handle> colorHandles = new ArrayList<Handle>();
+				
+				// look for the '(' and ')' positions
+				int openPar = tab.indexOf("(", m.start());
+				int closePar = tab.indexOf(")", m.end());
+				if (openPar < 0 || closePar < 0) {
+					// ignore this color
+					continue;
+				}
+
+				System.out.println("found color use at " + openPar + " - " + closePar + "('" + tab.substring(openPar, closePar) + "')");
+				
+				// look for handles inside the parenthesis
+				for (Handle handle : allHandles)
+				{
+					if (handle.tabIndex == i &&
+							handle.startChar > openPar &&
+							handle.endChar <= closePar) {
+						// we have a match
+						System.out.println("handle match: " + handle.newValue);
+						colorHandles.add(handle);
+					}
+				}
+				
+				// TODO: make sure there is no other stuff between '()' like variables
+
+				if (colorHandles.size() > 0) {
+					// create a new color box
+					int line = countLines(tab.substring(0, m.start())) - 1;			// zero based					
+					ccbs.add(new ColorControlBox(colorModes.get(0), colorHandles, i, line, closePar));
+				}
+			}
+		}
+		
+		return ccbs;
+	}
+	
 	public static boolean containsTweakComment(String[] codeTabs)
 	{
 		for (String tab : codeTabs) {

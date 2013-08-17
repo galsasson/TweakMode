@@ -60,6 +60,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	
 	public boolean interactiveMode = false;
 	public ArrayList<Handle> numbers = null;
+	public ArrayList<ColorControlBox> colorBoxes = null;
+	
 	public Handle mouseHandle = null;
 	
 	int cursorType;
@@ -111,6 +113,21 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				n.setWidth(end - x);
 				n.draw(g2d, n==mouseHandle);
 			}
+			
+			// draw color boxes
+			for (ColorControlBox cBox: colorBoxes)
+			{
+				// draw only boxes that belong to the current tab
+				if (cBox.tabIndex != ta.editor.getSketch().getCurrentCodeIndex()) {
+					continue;
+				}
+				
+				int lineStartChar = ta.getLineStartOffset(cBox.line);
+				int x = ta.offsetToX(cBox.line, cBox.charIndex - lineStartChar);
+				int y = ta.lineToY(cBox.line) + fm.getHeight() + 1;
+				cBox.setPos(x, y);
+				cBox.draw(g2d);
+			}
 		}
 	}
 		  
@@ -127,9 +144,10 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	}
 	
 	// Update the interface
-	public void updateInterface(ArrayList<Handle> numbers)
+	public void updateInterface(ArrayList<Handle> numbers, ArrayList<ColorControlBox> colorBoxes)
 	{
 		this.numbers = numbers;
+		this.colorBoxes = colorBoxes;
 		
 		initInterfacePositions();
 		repaint();		
@@ -160,6 +178,18 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
 				int y = ta.lineToY(n.line) + fm.getHeight() + 1;
 				n.initInterface(x, y, end-x, fm.getHeight());
+			}
+			
+			for (ColorControlBox cBox : colorBoxes)
+			{
+				if (cBox.tabIndex != tab) {
+					continue;
+				}
+				
+				int lineStartChar = ta.getLineStartOffset(cBox.line);
+				int x = ta.offsetToX(cBox.line, cBox.charIndex - lineStartChar);
+				int y = ta.lineToY(cBox.line) + fm.getHeight() + 1;
+				cBox.initInterface(x, y, fm.getHeight(), fm.getHeight());
 			}
 		}
 		

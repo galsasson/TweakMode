@@ -175,9 +175,9 @@ public class TweakEditor extends JavaEditor
 		}
 	}
 	
-	public void updateInterface(ArrayList<Handle> numbers)
+	public void updateInterface(ArrayList<Handle> numbers, ArrayList<ColorControlBox> colorBoxes)
 	{
-		tweakTextArea.updateInterface(numbers);
+		tweakTextArea.updateInterface(numbers, colorBoxes);
 	}
 	
 	/**
