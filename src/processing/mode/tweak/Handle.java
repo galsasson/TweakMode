@@ -24,6 +24,9 @@ public class Handle {
 	java.lang.Number value, newValue;
 	String strDiff;
 	
+	// connect with color control box
+	ColorControlBox colorBox;
+	
 	// interface
 	int x, y, width, height;
 	int xCenter, xCurrent, xLast;
@@ -66,13 +69,6 @@ public class Handle {
 		
 		newStartChar = startChar;
 		newEndChar = endChar;
-	}
-	
-	public String toString()
-	{
-		return type + " " + name + " = " + strValue + 
-				" (tab: " + tabIndex + ", line: " + line + 
-				", start: " + startChar + ", end: " + endChar + ")"; 
 	}
 	
 	public void initInterface(int x, int y, int width, int height)
@@ -129,6 +125,11 @@ public class Handle {
 			}
 			newValue = (Float)newValue + change;
 			strNewValue = String.format(textFormat, (Float)newValue);
+		}
+		
+		if (colorBox != null)
+		{
+			colorBox.colorChanged();
 		}
 	}
 	
@@ -196,6 +197,18 @@ public class Handle {
 		else {
 			return !((Float)value).equals((Float)newValue);
 		}
+	}
+	
+	public void setColorBox(ColorControlBox box)
+	{
+		colorBox = box;
+	}
+	
+	public String toString()
+	{
+		return type + " " + name + " = " + strValue + 
+				" (tab: " + tabIndex + ", line: " + line + 
+				", start: " + startChar + ", end: " + endChar + ")"; 
 	}
 }
 

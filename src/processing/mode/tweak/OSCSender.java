@@ -16,7 +16,7 @@ public class OSCSender {
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {
-			 System.out.println("Couldn't send new value of float " + index);
+			 System.out.println("TweakMode: error sending new value of float " + index);
 		 }
 	}
 	
@@ -30,7 +30,7 @@ public class OSCSender {
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {
-			 System.out.println("Couldn't send new value of int " + index);
+			 System.out.println("TweakMode: error sending new value of int " + index);
 			 System.out.println(e.toString());
 		 }
 	}
@@ -45,7 +45,7 @@ public class OSCSender {
 		 try {
 			sender.send(msg);
 		 } catch (Exception e) {
-			 System.out.println("Couldn't send new value of long " + index);
+			 System.out.println("TweakMode: error sending new value of long " + index);
 			 System.out.println(e.toString());
 		 }
 	}

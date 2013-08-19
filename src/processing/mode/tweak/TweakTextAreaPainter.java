@@ -118,14 +118,14 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			for (ColorControlBox cBox: colorBoxes)
 			{
 				// draw only boxes that belong to the current tab
-				if (cBox.tabIndex != ta.editor.getSketch().getCurrentCodeIndex()) {
+				if (cBox.getTabIndex() != ta.editor.getSketch().getCurrentCodeIndex()) {
 					continue;
 				}
 				
-				int lineStartChar = ta.getLineStartOffset(cBox.line);
-				int x = ta.offsetToX(cBox.line, cBox.charIndex - lineStartChar);
-				int y = ta.lineToY(cBox.line) + fm.getHeight() + 1;
-				cBox.setPos(x, y);
+				int lineStartChar = ta.getLineStartOffset(cBox.getLine());
+				int x = ta.offsetToX(cBox.getLine(), cBox.getCharIndex() - lineStartChar);
+				int y = ta.lineToY(cBox.getLine()) + fm.getDescent();
+				cBox.setPos(x, y+1);
 				cBox.draw(g2d);
 			}
 		}
@@ -166,7 +166,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		
 		for (int tab=0; tab<code.length; tab++)
 		{
-			ta.setText(((TweakEditor)ta.editor).tweakMode.baseCode[tab]);
+			String tabCode = ((TweakEditor)ta.editor).tweakMode.baseCode[tab];
+			ta.setText(tabCode);
 			for (Handle n : numbers)
 			{
 				// handle only interface points in tab 'tab'.
@@ -179,17 +180,17 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				int y = ta.lineToY(n.line) + fm.getHeight() + 1;
 				n.initInterface(x, y, end-x, fm.getHeight());
 			}
-			
+
 			for (ColorControlBox cBox : colorBoxes)
 			{
-				if (cBox.tabIndex != tab) {
+				if (cBox.getTabIndex() != tab) {
 					continue;
 				}
-				
-				int lineStartChar = ta.getLineStartOffset(cBox.line);
-				int x = ta.offsetToX(cBox.line, cBox.charIndex - lineStartChar);
-				int y = ta.lineToY(cBox.line) + fm.getHeight() + 1;
-				cBox.initInterface(x, y, fm.getHeight(), fm.getHeight());
+
+				int lineStartChar = ta.getLineStartOffset(cBox.getLine());
+				int x = ta.offsetToX(cBox.getLine(), cBox.getCharIndex() - lineStartChar);
+				int y = ta.lineToY(cBox.getLine()) + fm.getDescent();
+				cBox.initInterface(x, y+1, fm.getHeight()-2, fm.getHeight()-2);
 			}
 		}
 		

@@ -64,6 +64,11 @@ public class SketchParser
 				int start = m.start()+1;
 				int end = m.end();
 				
+				if (isInComment(start, codeTabs[i])) {
+					// ignore comments
+					continue;
+				}
+
 				if (requiresComment) {
 					// only add numbers that have the "// tweak" comment in their line
 					if (!lineHasTweakComment(start, c)) {
@@ -140,7 +145,12 @@ public class SketchParser
 			{
 				int start = m.start()+1;
 				int end = m.end();
-				
+
+				if (isInComment(start, codeTabs[i])) {
+					// ignore comments
+					continue;
+				}
+
 				if (requiresComment) {
 					// only add numbers that have the "// tweak" comment in their line
 					if (!lineHasTweakComment(start, c)) {
@@ -187,6 +197,12 @@ public class SketchParser
 			// search for a call to colorMode function
 			while ((index = tab.indexOf("colorMode", index+1)) > -1) {
 				// found colorMode at index
+				
+				if (isInComment(index, tab)) {
+					// ignore comments
+					continue;
+				}
+
 				index += 9;
 				int parOpen = tab.indexOf('(', index);
 				if (parOpen < 0) {
@@ -242,6 +258,11 @@ public class SketchParser
 					// ignore this color
 					continue;
 				}
+				
+				if (isInComment(m.start(), tab)) {
+					// ignore colors in a comment
+					continue;
+				}
 
 				System.out.println("found color use at " + openPar + " - " + closePar + "('" + tab.substring(openPar, closePar) + "')");
 				
@@ -261,8 +282,7 @@ public class SketchParser
 
 				if (colorHandles.size() > 0) {
 					// create a new color box
-					int line = countLines(tab.substring(0, m.start())) - 1;			// zero based					
-					ccbs.add(new ColorControlBox(colorModes.get(0), colorHandles, i, line, closePar));
+					ccbs.add(new ColorControlBox(colorModes.get(0), colorHandles));
 				}
 			}
 		}
@@ -284,7 +304,7 @@ public class SketchParser
 	
 	public static boolean lineHasTweakComment(int pos, String code)
 	{
-		int lineEnd = code.indexOf("\n", pos);
+		int lineEnd = getEndOfLine(pos, code);
 		if (lineEnd < 0) {
 			return false;
 		}
@@ -399,6 +419,16 @@ public class SketchParser
 		}
 
 		return false;
-	}	
+	}
 	
+	private boolean isInComment(int pos, String code)
+	{
+		
+		return false;
+	}
+	
+	public static int getEndOfLine(int pos, String code)
+	{
+		return code.indexOf("\n", pos);
+	}
 }
