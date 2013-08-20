@@ -13,6 +13,7 @@ public class ColorControlBox {
 	Color color;
 	boolean ilegalColor = false;
 	boolean isBW;
+	boolean isHex;
 	
 	// interface
 	int x, y, width, height;
@@ -30,6 +31,7 @@ public class ColorControlBox {
 		}
 		
 		isBW = isGrayScale();
+		isHex = isHexColor();
 		color = getCurrentColor();
 		
 		visible = Settings.alwaysShowColorBoxes;
@@ -82,6 +84,23 @@ public class ColorControlBox {
 		if (handles.size() <= 2) {
 			int value = handles.get(0).newValue.intValue();
 			if ((value&0xff000000) == 0) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * Check if color is hex or webcolor
+	 * @return
+	 * true if number is hex or webcolor
+	 */
+	private boolean isHexColor()
+	{
+		if (handles.get(0).type == "hex" || handles.get(0).type == "webcolor") {
+			int value = handles.get(0).value.intValue();
+			if ((value&0xff000000) != 0) {
 				return true;
 			}
 		}

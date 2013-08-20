@@ -35,11 +35,22 @@ public class SketchParser
 		// handle colors
 		colorModes = findAllColorModes();
 		colorBoxes = createColorBoxes();
-		for (ColorControlBox ccb : colorBoxes)
-		{
-			System.out.println("ccb: " + ccb.toString());
-		}
 		
+		/* If there is more than one color mode in this sketch,
+		 * allow only hex and webcolors.
+		 * Current there is no notion of order of execution so we
+		 * cannot know which color mode relate to a color.
+		 */
+		if (colorModes.size() > 1) {
+			ArrayList<ColorControlBox> toDelete = new ArrayList<ColorControlBox>();
+			for (ColorControlBox ccb : colorBoxes)
+			{
+				if (!ccb.isHex) {
+					toDelete.add(ccb);
+				}
+			}
+			colorBoxes.removeAll(toDelete);
+		}
 	}
 	
 	/**
@@ -340,11 +351,30 @@ public class SketchParser
 					}
 				}
 				
-				// TODO: make sure there is no other stuff between '()' like variables
-
 				if (colorHandles.size() > 0) {
+					/* make sure there is no other stuff between '()' like variables.
+					 * substract all handle values from string inside parenthesis and
+					 * check there is no garbage left
+					 */
+					String insidePar = tab.substring(openPar+1, closePar);
+					for (Handle h : colorHandles) {
+						insidePar = insidePar.replace(h.strValue, "");
+					}
+					System.out.println("after removing all values we have: '" + insidePar + "'");
+					// make sure there is only ' ' and ',' left in the string.
+					boolean garbage = false;
+					for (int j=0; j<insidePar.length(); j++) {
+						if (insidePar.charAt(j) != ' ' && insidePar.charAt(j) != ',') {
+							// don't add this color box because we can not know the
+							// real value of this color
+							garbage = true;
+						}
+					}
+					
 					// create a new color box
-					ccbs.add(new ColorControlBox(colorModes.get(0), colorHandles));
+					if (!garbage) {
+						ccbs.add(new ColorControlBox(colorModes.get(0), colorHandles));
+					}
 				}
 			}
 		}
@@ -514,5 +544,10 @@ public class SketchParser
 		}
 		
 		return -1;
+	}
+	
+	private String replaceString(String str, int start, int end, String put)
+	{
+		return str.substring(0, start) + put + str.substring(end, str.length());
 	}
 }
