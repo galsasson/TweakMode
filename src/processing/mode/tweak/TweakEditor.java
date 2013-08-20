@@ -67,6 +67,10 @@ public class TweakEditor extends JavaEditor
 {
 	TweakMode tweakMode;
 	
+	String[] baseCode;
+	
+	final static int SPACE_AMOUNT = 0;
+	
 	/**
 	 * Custom TextArea
 	 */
@@ -107,12 +111,12 @@ public class TweakEditor extends JavaEditor
 
 		return menu;
 	}
-	
+
 	public void startInteractiveMode()
 	{
 		tweakTextArea.startInteractiveMode();
 	}
-	
+
 	public void stopInteractiveMode(ArrayList<Handle> handles)
 	{				
 		tweakTextArea.stopInteractiveMode();
@@ -129,7 +133,7 @@ public class TweakEditor extends JavaEditor
 				break;
 			}
 		}
-				
+
 		if (modified) {
 			// ask to keep the values
 			int ret = Base.showYesNoQuestion(this, "Sketch Tweak", 
@@ -155,7 +159,7 @@ public class TweakEditor extends JavaEditor
 						/* Wild Hack: set document to null so the text editor will refresh 
 						   the program contents when the document tab is being clicked */
 						sketch.getCode(i).setDocument(null);
-						
+
 						if (i == sketch.getCurrentCodeIndex()) {
 							// this will update the current code		
 							setCode(sketch.getCurrentCode());
@@ -174,12 +178,12 @@ public class TweakEditor extends JavaEditor
 			tweakTextArea.invalidate();
 		}
 	}
-	
+
 	public void updateInterface(ArrayList<Handle> numbers, ArrayList<ColorControlBox> colorBoxes)
 	{
 		tweakTextArea.updateInterface(numbers, colorBoxes);
 	}
-	
+
 	/**
 	* Deactivate run button
 	* Do this because when Mode.handleRun returns null the play button stays on.
@@ -202,13 +206,31 @@ public class TweakEditor extends JavaEditor
 		return modifiedTabs;
 	}
 	
-	public void initEditorCode(String[] newCode, ArrayList<Handle> handles, boolean withSpaces)
+	public void initBaseCode()
+	{
+    	SketchCode[] code = sketch.getCode();
+    	
+    	String space = new String();
+    	
+    	for (int i=0; i<SPACE_AMOUNT; i++) {
+    		space += "\n";
+    	}
+    	
+    	baseCode = new String[code.length];
+		for (int i=0; i<code.length; i++)
+		{
+			baseCode[i] = new String(code[i].getSavedProgram());
+			baseCode[i] = space + baseCode[i] + space;
+		} 
+	}
+	
+	public void initEditorCode(ArrayList<Handle> handles, boolean withSpaces)
 	{
 		SketchCode[] sketchCode = sketch.getCode();
-		for (int tab=0; tab<newCode.length; tab++) {
+		for (int tab=0; tab<baseCode.length; tab++) {
 				// beautify the numbers
 				int charInc = 0;
-				String code = newCode[tab];
+				String code = baseCode[tab];
 		
 				for (Handle n : handles)
 				{
@@ -261,7 +283,7 @@ public class TweakEditor extends JavaEditor
 		SketchCode[] code = sketch.getCode();
 		for (int i=0; i<code.length; i++) {
 			String c = code[i].getProgram();
-			c = c.substring(TweakMode.SPACE_AMOUNT, c.length() - TweakMode.SPACE_AMOUNT);
+			c = c.substring(SPACE_AMOUNT, c.length() - SPACE_AMOUNT);
 			code[i].setProgram(c);
 			/* Wild Hack: set document to null so the text editor will refresh
 			   the program contents when the document tab is being clicked */
@@ -271,8 +293,156 @@ public class TweakEditor extends JavaEditor
 		setCode(sketch.getCurrentCode());
 	}
 	
+    /**
+     * Replace all numbers with variables and add code to initialize these variables and handle OSC messages.
+     * @param sketch
+     * 	the sketch to work on
+     * @param numbers
+     * 	list of numbers to replace in this sketch
+     * @return
+     *  true on success
+     */
+    public boolean automateSketch(Sketch sketch, ArrayList<Handle> numbers)
+    {
+    	SketchCode[] code = sketch.getCode();
+
+    	if (code.length<1)
+    		return false;
+
+    	if (numbers.size() == 0)
+    		return false;
+    	
+    	System.out.print("Tweak: instrument code... ");
+		
+		// Copy current program to interactive program
+		
+    	/* modify the code below, replace all numbers with their variable names */
+    	// loop through all tabs in the current sketch
+    	for (int tab=0; tab<code.length; tab++)
+    	{
+    		int charInc = 0;
+			String c = baseCode[tab];
+			for (Handle n : numbers)
+    		{
+    			// handle only numbers that belong to the current tab
+				// (put numbers list inside SketchCode?)
+    			if (n.tabIndex != tab)
+    				continue;
+
+    			// replace number value with a variable
+    			c = replaceString(c, n.startChar + charInc, n.endChar + charInc, n.name);
+    			charInc += n.name.length() - n.strValue.length();
+    		}
+			code[tab].setProgram(c);
+    	}
+    	System.out.println("ok");
+    	
+    	System.out.print("Tweak: add header... ");
+    	
+    	/* add the main header to the code in the first tab */
+    	String c = code[0].getProgram();
+    	
+    	// header contains variable declaration, initialization, and OSC listener function
+    	String header;
+    	header = "\n\n" +
+    		 "/*************************/\n" +
+    		 "/* MODIFIED BY TWEAKMODE */\n" +
+		 	 "/*************************/\n" +
+    		 "\n\n";
+    	
+    	// add needed OSC imports and the global OSC object
+    	header += "import oscP5.*;\n";
+    	header += "import netP5.*;\n\n";
+    	header += "OscP5 tweakmode_oscP5;\n\n";
+    	
+    	// write a declaration for int and float arrays
+    	header += "int[] tweakmode_int = new int["+howManyInts(numbers)+"];\n";
+    	header += "float[] tweakmode_float = new float["+howManyFloats(numbers)+"];\n\n";
+    	
+    	/* add the class for the OSC event handler that will respond to our messages */
+    	header += "public class TweakMode_OscHandler {\n" +
+    			  "  public void oscEvent(OscMessage msg) {\n" +
+                  "    String type = msg.addrPattern();\n" +
+                  "    if (type.contains(\"/tm_change_int\")) {\n" +
+                  "      int index = msg.get(0).intValue();\n" +
+                  "      int value = msg.get(1).intValue();\n" +    
+                  "      tweakmode_int[index] = value;\n" +
+                  "    }\n" +
+                  "    else if (type.contains(\"/tm_change_float\")) {\n" +
+                  "      int index = msg.get(0).intValue();\n" +
+                  "      float value = msg.get(1).floatValue();\n" +   
+                  "      tweakmode_float[index] = value;\n" +
+                  "    }\n" +
+                  "  }\n" +
+                  "}\n";
+    	header += "TweakMode_OscHandler tweakmode_oscHandler = new TweakMode_OscHandler();\n";
+
+    	header += "void tweakmode_initAllVars() {\n";
+    	for (Handle n : numbers)
+    	{
+    		header += "  " + n.name + " = " + n.strValue + ";\n";
+    	}
+    	header += "}\n\n";
+    	header += "void tweakmode_initOSC() {\n";
+    	header += "  tweakmode_oscP5 = new OscP5(tweakmode_oscHandler,57110);\n";
+    	header += "}\n";
+    	
+    	header += "\n\n\n\n\n";
+    	
+    	// add call to our initAllVars and initOSC functions from the setup() function.
+    	String addToSetup = "\n  tweakmode_initAllVars();\n  tweakmode_initOSC();\n\n";
+    	int pos = getSetupStart(c);
+    	c = replaceString(c, pos, pos, addToSetup);
+
+    	code[0].setProgram(header + c);
+    	
+    	System.out.println("ok");
+
+    	/* print out modified code */
+    	if (tweakMode.dumpModifiedCode) {
+    		System.out.println("\nModified code:\n");
+    		for (int i=0; i<code.length; i++)
+    		{
+    			System.out.println("file " + i + "\n=========");
+    			System.out.println(code[i].getProgram());
+    		}
+    	}
+    	
+
+    	return true;
+    }	
+	
 	private String replaceString(String str, int start, int end, String put)
 	{
 		return str.substring(0, start) + put + str.substring(end, str.length());
+	}
+	
+	private int howManyInts(ArrayList<Handle> numbers)
+	{
+		int count = 0;
+		for (Handle n : numbers) {
+			if (n.type == "int" || n.type == "hex" || n.type == "webcolor")
+				count++;
+		}
+		return count;
+	}
+
+	private int howManyFloats(ArrayList<Handle> numbers)
+	{
+		int count = 0;
+		for (Handle n : numbers) {
+			if (n.type == "float")
+				count++;
+		}
+		return count;
+	}
+
+	private int getSetupStart(String code)
+	{
+		int pos;
+		
+		pos = code.indexOf("setup()");
+		pos = code.indexOf("{", pos);
+		return pos+1;
 	}
 }

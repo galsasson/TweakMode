@@ -176,7 +176,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		
 		for (int tab=0; tab<code.length; tab++)
 		{
-			String tabCode = ((TweakEditor)ta.editor).tweakMode.baseCode[tab];
+			String tabCode = ((TweakEditor)ta.editor).baseCode[tab];
 			ta.setText(tabCode);
 			for (Handle n : numbers)
 			{
@@ -218,7 +218,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		int charInc = 0;
 		int currentTab = ta.editor.getSketch().getCurrentCodeIndex();
 		SketchCode sc = ta.editor.getSketch().getCode(currentTab);
-		String code = ((TweakEditor)ta.editor).tweakMode.baseCode[currentTab];
+		String code = ((TweakEditor)ta.editor).baseCode[currentTab];
 		
 		for (Handle n : numbers)
 		{
