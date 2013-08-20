@@ -29,6 +29,7 @@ public class SketchParser
 		
 		allHandles.addAll(findAllNumbers());
 		allHandles.addAll(findAllHexNumbers());
+		allHandles.addAll(findAllWebColorNumbers());
 		Collections.sort(allHandles, new HandleComparator());
 		
 		// handle colors
@@ -138,7 +139,7 @@ public class SketchParser
 		for (int i=0; i<codeTabs.length; i++)
 		{
 			String c = codeTabs[i];
-			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]0x[\\dabcdef]+");
+			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]0x[A-Fa-f0-9]+");
 			Matcher m = p.matcher(c);
         
 			while (m.find())
@@ -174,6 +175,67 @@ public class SketchParser
 				Handle handle;
 				try {
 					handle = new Handle("hex", name, intVarCount, value, i, line, start, end, 0);
+				}
+				catch (NumberFormatException e) {
+					// don't add this number
+					continue;
+				}
+				numbers.add(handle);
+				intVarCount++;
+    		}
+    	}
+
+    	return numbers;
+    }
+
+	/**
+	 * Get a list of all the webcolors (#) numbers in the code
+	 * @return
+	 * list of all hexadecimal numbers in the sketch
+	 */
+	private ArrayList<Handle> findAllWebColorNumbers()
+	{
+		ArrayList<Handle> numbers = new ArrayList<Handle>();
+
+		for (int i=0; i<codeTabs.length; i++)
+		{
+			String c = codeTabs[i];
+			Pattern p = Pattern.compile("#[A-Fa-f0-9]{6}");
+			Matcher m = p.matcher(c);
+        
+			while (m.find())
+			{
+				int start = m.start();
+				int end = m.end();
+
+				if (isInComment(start, codeTabs[i])) {
+					// ignore comments
+					continue;
+				}
+
+				if (requiresComment) {
+					// only add numbers that have the "// tweak" comment in their line
+					if (!lineHasTweakComment(start, c)) {
+						continue;
+					}
+				}
+
+				// special case for ignoring number inside a string ("")
+				if (isInsideString(start, c)) {
+					continue;
+				}
+
+				// beware of the global assignment (bug from 26.07.2013)
+				if (isGlobal(m.start(), c)) {
+					continue;
+				}
+
+				int line = countLines(c.substring(0, start)) - 1;			// zero based
+				String value = c.substring(start, end);
+				String name = varPrefix + "_int[" + intVarCount + "]";
+				Handle handle;
+				try {
+					handle = new Handle("webcolor", name, intVarCount, value, i, line, start, end, 0);
 				}
 				catch (NumberFormatException e) {
 					// don't add this number

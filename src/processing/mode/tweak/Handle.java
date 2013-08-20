@@ -61,6 +61,13 @@ public class Handle {
 			strNewValue = strValue;
 			textFormat = "0x%x";
 		}
+		else if (type == "webcolor") {
+			Long val = Long.parseLong(strValue.substring(1, strValue.length()), 16);
+			val = val | 0xff000000;
+			value = newValue = val.intValue();
+			strNewValue = strValue;
+			textFormat = "#%06x";
+		}
 		else if (type == "float") {
 			value = newValue = Float.parseFloat(strValue);
 			strNewValue = strValue;
@@ -117,6 +124,9 @@ public class Handle {
 		else if (type == "hex") {
 			setValue((Integer)newValue + (int)change);
 		}
+		else if (type == "webcolor") {
+			setValue(newValue.intValue() + (int)change);
+		}
 		else if (type == "float") {
 			if ((Float)newValue + change > Float.MAX_VALUE ||
 					(Float)newValue + change < Float.MIN_VALUE) {
@@ -137,6 +147,12 @@ public class Handle {
 		else if (type == "hex") {
 			newValue = value.intValue();
 			strNewValue = String.format(textFormat, newValue.intValue());
+		}
+		else if (type == "webcolor") {
+			newValue = value.intValue();
+			// keep only RGB
+			int val = (newValue.intValue() & 0xffffff);
+			strNewValue = String.format(textFormat, val);
 		}
 		else if (type == "float") {
 			newValue = value.floatValue();
@@ -216,6 +232,9 @@ public class Handle {
 		else if (type == "hex") {
 			return (!((Integer)value).equals((Integer)newValue));
 		}
+		else if (type == "webcolor") {
+			return (!((Integer)value).equals((Integer)newValue));
+		}
 		else {
 			return !((Float)value).equals((Float)newValue);
 		}
@@ -234,11 +253,12 @@ public class Handle {
 				OSCSender.sendInt(index, newValue.intValue());
 			}
 			else if (type == "hex") {
-//				Long val = Long.parseLong(n.strNewValue.substring(2, n.strNewValue.length()), 16);
+				OSCSender.sendInt(index, newValue.intValue());
+			}
+			else if (type == "webcolor") {
 				OSCSender.sendInt(index, newValue.intValue());
 			}
 			else if (type == "float") {
-//				float val = Float.parseFloat(n.strNewValue);
 				OSCSender.sendFloat(index, newValue.floatValue());
 			}
 		} catch (Exception e) { System.out.println("error sending OSC message!"); }

@@ -330,7 +330,7 @@ public class TweakMode extends JavaMode {
 	{
 		int count = 0;
 		for (Handle n : numbers) {
-			if (n.type == "int" || n.type == "hex")
+			if (n.type == "int" || n.type == "hex" || n.type == "webcolor")
 				count++;
 		}
 		return count;
