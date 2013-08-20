@@ -3,6 +3,7 @@ package processing.mode.tweak;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 
@@ -60,6 +61,7 @@ public class ColorSelector {
 		frame.getContentPane().add(box, BorderLayout.CENTER);
 		frame.pack();
 		frame.setResizable(false);
+		frame.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
 	
 	public void show(int x, int y)
@@ -93,6 +95,19 @@ public class ColorSelector {
 		repaintSelector();
 	}
 	
+	public void satBrightChanged()
+	{
+		repaintSelector();
+	}
+	
+	public void hueChanged()
+	{
+		if (selectorBox != null) {
+			selectorBox.renderBack();
+		}
+		repaintSelector();
+	}
+	
 	public void repaintSelector()
 	{
 		if (selectorBox != null) {
@@ -108,6 +123,7 @@ public class ColorSelector {
 	public class ColorSelectorBox extends PApplet
 	{
 		int lastX, lastY;
+		PImage backImg;
 		
 		public void setup()
 		{
@@ -115,25 +131,46 @@ public class ColorSelector {
 			noLoop();
 			colorMode(HSB, 255, 255, 255);
 			noFill();
-			loadPixels();
 			
 			if (!colorBox.ilegalColor) {
 				setToColor(colorBox.color);
 			}
+			
+			renderBack();
 		}
 		
 		public void draw()
 		{
+			image(backImg, 0, 0);
+			
+			stroke((lastY<128) ? 0 : 255);
+			
+			pushMatrix();
+			translate(lastX, lastY);
+			ellipse(0, 0, 5, 5);
+			line(-8, 0, -6, 0);
+			line(6, 0, 8, 0);
+			line(0, -8, 0, -6);
+			line(0, 6, 0, 8);
+			popMatrix();
+		}
+		
+		public void renderBack()
+		{
+			PGraphics buf = createGraphics(255, 255);
+			buf.colorMode(HSB, 255, 255, 255);
+			buf.beginDraw();
+			buf.loadPixels();
 			int index=0;
 			for (int j=0; j<255; j++) {
 				for (int i=0; i<255; i++) {
-					pixels[index++] = color(hue, i, 255-j);
+					buf.pixels[index++] = color(hue, i, 255-j);
 				}
 			}
+			buf.updatePixels();
+			buf.endDraw();
 
-			updatePixels();
-			stroke((brightness>128) ? 0 : 255);
-			ellipse(lastX, lastY, 5, 5);
+			backImg = buf.get();
 		}
 		
 		public void setToColor(Color c)
@@ -173,7 +210,7 @@ public class ColorSelector {
 			saturation = lastX;
 			brightness = 255 - lastY;
 			
-			repaintSelector();
+			satBrightChanged();
 			colorBox.selectorChanged(hue, saturation, brightness);
 		}
 
@@ -192,7 +229,7 @@ public class ColorSelector {
 
 	public class ColorSelectorSlider extends PApplet
 	{
-		PImage back;
+		PImage backImg;
 		int lastY;
 		
 		public void setup()
@@ -208,28 +245,12 @@ public class ColorSelector {
 			}
 			
 			// draw the slider background
-			PGraphics buf = createGraphics(30, 255);
-			buf.beginDraw();
-			buf.loadPixels();
-			int index=0;
-			for (int j=0; j<255; j++) {
-				for (int i=0; i<30; i++) {
-					if (colorBox.isBW) {
-						buf.pixels[index++] = color(255-j);
-					}
-					else {
-						buf.pixels[index++] = color(255-j, 255, 255);
-					}
-				}
-			}
-			buf.updatePixels();
-			buf.endDraw();
-			back = buf.get();
+			renderBack();
 		}
 		
 		public void draw()
 		{
-			image(back, 0, 0);
+			image(backImg, 0, 0);
 			if (colorBox.isBW) {
 				stroke(lastY<128 ? 0 : 255);
 			}
@@ -271,6 +292,28 @@ public class ColorSelector {
 			}
 		}
 		
+		public void renderBack()
+		{
+			PGraphics buf = createGraphics(30, 255);
+			buf.beginDraw();
+			buf.loadPixels();
+			int index=0;
+			for (int j=0; j<255; j++) {
+				for (int i=0; i<30; i++) {
+					if (colorBox.isBW) {
+						buf.pixels[index++] = color(255-j);
+					}
+					else {
+						buf.pixels[index++] = color(255-j, 255, 255);
+					}
+				}
+			}
+			buf.updatePixels();
+			buf.endDraw();
+
+			backImg = buf.get();
+		}
+		
 		public void setToColor(Color c)
 		{			
 			// set slider position
@@ -310,7 +353,7 @@ public class ColorSelector {
 		{
 			hue = 255 - lastY;
 			
-			repaintSelector();
+			hueChanged();
 			colorBox.selectorChanged(hue, saturation, brightness);
 		}
 

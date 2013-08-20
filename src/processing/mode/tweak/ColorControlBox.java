@@ -17,6 +17,7 @@ public class ColorControlBox {
 	// interface
 	int x, y, width, height;
 	TweakTextAreaPainter painter;
+	boolean visible;
 	
 	public ColorControlBox(ColorMode mode, ArrayList<Handle> handles)
 	{
@@ -30,6 +31,8 @@ public class ColorControlBox {
 		
 		isBW = isGrayScale();
 		color = getCurrentColor();
+		
+		visible = Settings.alwaysShowColorBoxes;
 	}
 	
 	public void initInterface(TweakTextAreaPainter painter, int x, int y, int w, int h)
@@ -49,22 +52,26 @@ public class ColorControlBox {
 	
 	public void draw(Graphics2D g2d)
 	{
+		if (!visible) {
+			return;
+		}
+		
 		AffineTransform trans = g2d.getTransform();
 		g2d.translate(x, y);
 
-		// draw black outline outline
-		g2d.setColor(Color.BLACK);
-		g2d.setStroke(new BasicStroke(1));
-		g2d.drawArc(0, 0, width, height, 0, 360);
-
 		// draw current color
 		g2d.setColor(color);
-		g2d.fillArc(2, 2, width-4, height-4, 0, 360);
+		g2d.fillRoundRect(0, 0, width, height, 5, 5);
+
+		// draw black outline
+		g2d.setStroke(new BasicStroke(1));
+		g2d.setColor(Color.BLACK);
+		g2d.drawRoundRect(0, 0, width, height, 5, 5);
 		
 		if (ilegalColor) {
 			g2d.setColor(Color.RED);
 			g2d.setStroke(new BasicStroke(2));
-			g2d.drawLine(width*3/4, height/4, width/4, height*3/4);
+			g2d.drawLine(width-3, 3, 3, height-3);
 		}
 		
 		g2d.setTransform(trans);
@@ -238,16 +245,45 @@ public class ColorControlBox {
 		int lastHandle = handles.size()-1;
 		return handles.get(lastHandle).newEndChar + 2;
 	}
-	
+
+	/* Check if the point is in the box
+	 * 
+	 */
 	public boolean pick(int mx, int my)
 	{
-		int centerX = x+width/2;
-		int centerY = y+height/2;
-		if (Math.sqrt(Math.pow(mx-centerX, 2) + Math.pow(my-centerY, 2)) < width/2) {
+		if (!visible) {
+			return false;
+		}
+		
+		if (mx>x && mx < x+width && my>y && my<y+height) {
 			return true;
 		}
 		
 		return false;
+	}
+	
+	/* Only show the color box if mouse is on the same line
+	 * 
+	 * return true if there was change
+	 */
+	public boolean setMouseY(int my)
+	{
+		boolean change = false;
+		
+		if (my>y && my<y+height) {
+			if (!visible) {
+				change = true;
+			}
+			visible = true;
+		}
+		else {
+			if (visible) {
+				change = true;
+			}
+			visible = false;
+		}
+		
+		return change;
 	}
 	
 	/* Update the color numbers with the new values that were selected 

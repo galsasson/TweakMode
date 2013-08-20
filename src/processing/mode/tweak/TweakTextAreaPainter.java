@@ -270,10 +270,54 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			}
 		}
 		
-		if (cursorType == Cursor.W_RESIZE_CURSOR || cursorType == -1) {
+		for (ColorControlBox colorBox : colorBoxes)
+		{
+			// skip color box on different tabs
+			if (colorBox.getTabIndex() != ta.editor.getSketch().getCurrentCodeIndex()) {
+				continue;
+			}
+			
+			if (colorBox.pick(mouseX, mouseY))
+			{
+				cursorType = Cursor.HAND_CURSOR;
+				setCursor(new Cursor(cursorType));
+				return;
+			}
+		}
+		
+		if (cursorType == Cursor.W_RESIZE_CURSOR ||
+			cursorType == Cursor.HAND_CURSOR ||
+			cursorType == -1) {
 			cursorType = Cursor.DEFAULT_CURSOR;
 			setCursor(new Cursor(cursorType));
+		}	
+	}
+	
+	/* Handle color boxes show/hide
+	 * 
+	 * display the box if the mouse if in the same line.
+	 * always keep the color box of the color selector.
+	 */
+	private void showHideColorBoxes(int y)
+	{
+		boolean change = false;
+		for (ColorControlBox box : colorBoxes) {
+			if (box.getTabIndex() != ta.editor.getSketch().getCurrentCodeIndex()) {
+				continue;
+			}
+			
+			if (box.setMouseY(y)) {
+				change = true;
+			}
+		}
+
+		if (colorSelector != null) {
+			colorSelector.colorBox.visible = true;
 		}		
+
+		if (change) {
+			repaint();
+		}
 	}
 
 	@Override
@@ -355,6 +399,10 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		updateCursor(e.getX(), e.getY());
+		
+		if (!Settings.alwaysShowColorBoxes) {
+			showHideColorBoxes(e.getY());
+		}
 	}
 
 	@Override
