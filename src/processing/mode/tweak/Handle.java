@@ -110,27 +110,49 @@ public class Handle {
 			if ((Integer)newValue + (int)change > Integer.MAX_VALUE ||
 					(Integer)newValue + (int)change < Integer.MIN_VALUE) {
 				change = 0;
+				return;
 			}
-			newValue = (Integer)newValue + (int)change;
-			strNewValue = String.format(textFormat, (Integer)newValue);
+			setValue((Integer)newValue + (int)change);
 		}
 		else if (type == "hex") {
-			newValue = (Integer)newValue + (int)change;
-			strNewValue = String.format(textFormat, (Integer)newValue);			
+			setValue((Integer)newValue + (int)change);
 		}
 		else if (type == "float") {
 			if ((Float)newValue + change > Float.MAX_VALUE ||
 					(Float)newValue + change < Float.MIN_VALUE) {
 				change = 0;
 			}
-			newValue = (Float)newValue + change;
-			strNewValue = String.format(textFormat, (Float)newValue);
+			setValue((Float)newValue + change);
+		}
+
+		updateColorBox();
+	}
+	
+	public void setValue(Number value)
+	{
+		if (type == "int") {
+			newValue = value.intValue();
+			strNewValue = String.format(textFormat, newValue.intValue());
+		}
+		else if (type == "hex") {
+			newValue = value.intValue();
+			strNewValue = String.format(textFormat, newValue.intValue());
+		}
+		else if (type == "float") {
+			newValue = value.floatValue();
+			strNewValue = String.format(textFormat, newValue.floatValue());			
 		}
 		
+		// send new data to the server in the sketch
+		oscSendNewValue();
+	}
+	
+	public void updateColorBox()
+	{
 		if (colorBox != null)
 		{
 			colorBox.colorChanged();
-		}
+		}		
 	}
 	
 	private float getChange()
@@ -202,6 +224,24 @@ public class Handle {
 	public void setColorBox(ColorControlBox box)
 	{
 		colorBox = box;
+	}
+	
+	public void oscSendNewValue()
+	{
+		int index = varIndex;
+		try {
+			if (type == "int") {
+				OSCSender.sendInt(index, newValue.intValue());
+			}
+			else if (type == "hex") {
+//				Long val = Long.parseLong(n.strNewValue.substring(2, n.strNewValue.length()), 16);
+				OSCSender.sendInt(index, newValue.intValue());
+			}
+			else if (type == "float") {
+//				float val = Float.parseFloat(n.strNewValue);
+				OSCSender.sendFloat(index, newValue.floatValue());
+			}
+		} catch (Exception e) { System.out.println("error sending OSC message!"); }
 	}
 	
 	public String toString()

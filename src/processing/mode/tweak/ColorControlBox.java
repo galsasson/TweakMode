@@ -12,9 +12,11 @@ public class ColorControlBox {
 	ColorMode colorMode;
 	Color color;
 	boolean ilegalColor = false;
+	boolean isBW;
 	
 	// interface
 	int x, y, width, height;
+	TweakTextAreaPainter painter;
 	
 	public ColorControlBox(ColorMode mode, ArrayList<Handle> handles)
 	{
@@ -26,11 +28,13 @@ public class ColorControlBox {
 			h.setColorBox(this);
 		}
 		
+		isBW = isGrayScale();
 		color = getCurrentColor();
 	}
 	
-	public void initInterface(int x, int y, int w, int h)
+	public void initInterface(TweakTextAreaPainter painter, int x, int y, int w, int h)
 	{
+		this.painter = painter;
 		this.x = x;
 		this.y = y;
 		this.width = w;
@@ -66,36 +70,46 @@ public class ColorControlBox {
 		g2d.setTransform(trans);
 	}
 	
+	public boolean isGrayScale()
+	{
+		if (handles.size() <= 2) {
+			int value = handles.get(0).newValue.intValue();
+			if ((value&0xff000000) == 0) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	public Color getCurrentColor()
 	{
 		try {
 			if (handles.size() == 1)
 			{
-				int value = handles.get(0).newValue.intValue();
-				if ((value&0xff000000) != 0) {
+				if (isBW) {
+					// treat as color(gray)
+					float gray = handles.get(0).newValue.floatValue();
+					return verifiedGrayColor(gray);					
+				}
+				else {
 					// treat as color(argb)
 					int argb = handles.get(0).newValue.intValue();
 					return verifiedHexColor(argb);
 				}
-				else {
-					// treat as color(gray)
-					float gray = handles.get(0).newValue.floatValue();
-					return verifiedGrayColor(gray);
-				}
 			}
 			else if (handles.size() == 2)
 			{
-				int value = handles.get(0).newValue.intValue();
-				if ((value&0xff000000) != 0) {
+				if (isBW) {
+					// color(gray, alpha)
+					float gray = handles.get(0).newValue.floatValue();
+					return verifiedGrayColor(gray);					
+				}
+				else {
 					// treat as color(argb, a)
 					int argb = handles.get(0).newValue.intValue();
 					float a = handles.get(1).newValue.floatValue();
-					return verifiedHexColor(argb, a);
-				}
-				else {
-					// color(gray, alpha)
-					float gray = handles.get(0).newValue.floatValue();
-					return verifiedGrayColor(gray);
+					return verifiedHexColor(argb, a);					
 				}
 			}
 			else if (handles.size() == 3)
@@ -223,6 +237,66 @@ public class ColorControlBox {
 	{
 		int lastHandle = handles.size()-1;
 		return handles.get(lastHandle).newEndChar + 2;
+	}
+	
+	public boolean pick(int mx, int my)
+	{
+		int centerX = x+width/2;
+		int centerY = y+height/2;
+		if (Math.sqrt(Math.pow(mx-centerX, 2) + Math.pow(my-centerY, 2)) < width/2) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/* Update the color numbers with the new values that were selected 
+	 * in the color selector
+	 * 
+	 *  hue, saturation and brightness parameters are always 0-255
+	 */
+	public void selectorChanged(int hue, int saturation, int brightness)
+	{
+		if (isBW) {
+			// color(gray) or color(gray, alpha)
+			handles.get(0).setValue((float)hue/255*colorMode.v1Max);
+		}
+		else {
+			if (handles.size() == 1 || handles.size() == 2) {
+				// color(argb)
+				int prevVal = handles.get(0).newValue.intValue();
+				int prevAlpha = (prevVal>>24)&0xff;
+				Color c = Color.getHSBColor((float)hue/255, (float)saturation/255, (float)brightness/255);
+				int newVal = (prevAlpha<<24) | (c.getRed()<<16) | (c.getGreen()<<8) | (c.getBlue());
+				handles.get(0).setValue(newVal);
+			}
+			else if (handles.size() == 3 || handles.size() == 4) {
+				// color(v1, v2, v3) or color(v1, v2, v3, alpha)
+				if (colorMode.modeType == ColorMode.HSB) {
+					// HSB
+					float v1 = (float)hue/255 * colorMode.v1Max;
+					float v2 = (float)saturation/255 * colorMode.v2Max;
+					float v3 = (float)brightness/255 * colorMode.v3Max;
+					handles.get(0).setValue(v1);
+					handles.get(1).setValue(v2);
+					handles.get(2).setValue(v3);
+				}
+				else {
+					// RGB
+					Color c = Color.getHSBColor((float)hue/255, (float)saturation/255, (float)brightness/255);
+					handles.get(0).setValue((float)c.getRed()/255*colorMode.v1Max);
+					handles.get(1).setValue((float)c.getGreen()/255*colorMode.v2Max);					
+					handles.get(2).setValue((float)c.getBlue()/255*colorMode.v3Max);
+				}
+			}
+		}
+		
+		// update our own color
+		color = getCurrentColor();
+		
+		// update code text painter so the user will see the changes
+		painter.updateCodeText();
+		painter.repaint();
 	}
 	
 	public String toString()

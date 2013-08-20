@@ -32,6 +32,8 @@ import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.ArrayList;
@@ -63,6 +65,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	public ArrayList<ColorControlBox> colorBoxes = null;
 	
 	public Handle mouseHandle = null;
+	public ColorSelector colorSelector;
 	
 	int cursorType;
 	BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
@@ -140,6 +143,13 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	public void stopInteractiveMode()
 	{
 		interactiveMode = false;
+		
+		if (colorSelector != null) {
+			// close color selector
+			colorSelector.hide();
+			colorSelector.frame.dispatchEvent(new WindowEvent(colorSelector.frame, WindowEvent.WINDOW_CLOSING));
+		}
+		
 		repaint();
 	}
 	
@@ -190,7 +200,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				int lineStartChar = ta.getLineStartOffset(cBox.getLine());
 				int x = ta.offsetToX(cBox.getLine(), cBox.getCharIndex() - lineStartChar);
 				int y = ta.lineToY(cBox.getLine()) + fm.getDescent();
-				cBox.initInterface(x, y+1, fm.getHeight()-2, fm.getHeight()-2);
+				cBox.initInterface(this, x, y+1, fm.getHeight()-2, fm.getHeight()-2);
 			}
 		}
 		
@@ -199,7 +209,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	}
 
 	/**
-	 * Take the saved code of the current tab and replace all numbers with their current values.
+	 * Take the saved code of the current tab and replace 
+	 * all numbers with their current values.
 	 * Update TextArea with the new code.
 	 */
 	public void updateCodeText()
@@ -243,25 +254,6 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		return str.substring(0, start) + put + str.substring(end, str.length());
 	}
 
-	public void oscSendNewValue(Handle n)
-	{
-		int index = n.varIndex;
-		try {
-			if (n.type == "int") {
-				int val = Integer.parseInt(n.strNewValue);
-				OSCSender.sendInt(index, val);
-			}
-			else if (n.type == "hex") {
-				Long val = Long.parseLong(n.strNewValue.substring(2, n.strNewValue.length()), 16);
-				OSCSender.sendInt(index, val.intValue());
-			}
-			else if (n.type == "float") {
-				float val = Float.parseFloat(n.strNewValue);
-				OSCSender.sendFloat(index, val);
-			}
-		} catch (Exception e) { System.out.println("error sending OSC message!"); }
-	}
-	
 	public void updateCursor(int mouseX, int mouseY)
 	{
 		for (Handle n : numbers)
@@ -287,13 +279,15 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		if (mouseHandle != null) {
+			// set the current drag amount of the arrows
 			mouseHandle.setCurrentX(e.getX());
 			
-			// send OSC message - value changed.
-			oscSendNewValue(mouseHandle);
-
 			// update code text with the new value
 			updateCodeText();
+			
+			if (colorSelector != null) {
+				colorSelector.refreshColor();
+			}
 			
 			repaint();
 		}
@@ -305,6 +299,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+		// check for clicks on number handles
 		for (Handle n : numbers)
 		{
 			// skip numbers not in the current tag
@@ -320,7 +315,30 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				repaint();
 				return;
 			}
-		}		
+		}
+
+		// check for clicks on color boxes
+		for (ColorControlBox box : colorBoxes)
+		{
+			if (box.pick(e.getX(), e.getY()))
+			{
+				if (colorSelector != null) {
+					// we already show a color selector, close it
+					colorSelector.frame.dispatchEvent(
+							new WindowEvent(colorSelector.frame, WindowEvent.WINDOW_CLOSING));
+				}
+				
+				colorSelector = new ColorSelector(box);
+				colorSelector.frame.addWindowListener(new WindowAdapter() {
+				        public void windowClosing(WindowEvent e) {
+				        	colorSelector.frame.setVisible(false);
+				        	colorSelector = null;
+				        }
+				      });
+				colorSelector.show(this.getLocationOnScreen().x + e.getX() + 30, 
+						this.getLocationOnScreen().y + e.getY() - 130);					
+			}
+		}
 	}
 
 	@Override

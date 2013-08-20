@@ -423,6 +423,16 @@ public class SketchParser
 	
 	private boolean isInComment(int pos, String code)
 	{
+		// look for one line comment
+		int lineStart = getStartOfLine(pos, code);
+		if (lineStart < 0) {
+			return false;
+		}
+		if (code.substring(lineStart, pos).indexOf("//") != -1) {
+			return true;
+		}
+		
+		// TODO: look for block comments
 		
 		return false;
 	}
@@ -430,5 +440,17 @@ public class SketchParser
 	public static int getEndOfLine(int pos, String code)
 	{
 		return code.indexOf("\n", pos);
+	}
+	
+	public static int getStartOfLine(int pos, String code)
+	{
+		while (pos >= 0) {
+			if (code.charAt(pos) == '\n') {
+				return pos+1;
+			}
+			pos--;
+		}
+		
+		return -1;
 	}
 }
