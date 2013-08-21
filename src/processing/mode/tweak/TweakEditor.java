@@ -71,6 +71,8 @@ public class TweakEditor extends JavaEditor
 	
 	final static int SPACE_AMOUNT = 0;
 	
+	int oscPort;
+	
 	/**
 	 * Custom TextArea
 	 */
@@ -81,6 +83,9 @@ public class TweakEditor extends JavaEditor
 		super(base, path, state, mode);
 
 		tweakMode = (TweakMode)mode;
+		
+		// random port for OSC (0xff0 - 0xfff0)
+		oscPort = (int)(Math.random()*0xf000) + 0xff0;
 	}
 	
 	public EditorToolbar createToolbar() {
@@ -181,6 +186,11 @@ public class TweakEditor extends JavaEditor
 
 	public void updateInterface(ArrayList<Handle> numbers, ArrayList<ColorControlBox> colorBoxes)
 	{
+		// set OSC port of handles
+		for (Handle h : numbers) {
+			h.setOscPort(oscPort);
+		}
+		
 		tweakTextArea.updateInterface(numbers, colorBoxes);
 	}
 
@@ -384,7 +394,7 @@ public class TweakEditor extends JavaEditor
     	}
     	header += "}\n\n";
     	header += "void tweakmode_initOSC() {\n";
-    	header += "  tweakmode_oscP5 = new OscP5(tweakmode_oscHandler,57110);\n";
+    	header += "  tweakmode_oscP5 = new OscP5(tweakmode_oscHandler,"+oscPort+");\n";
     	header += "}\n";
     	
     	header += "\n\n\n\n\n";

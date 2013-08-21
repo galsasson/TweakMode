@@ -7,8 +7,11 @@ public class ColorMode {
 	float v1Max, v2Max, v3Max, aMax;
 	int modeType;
 	
-	public ColorMode()
+	String drawContext;
+	
+	public ColorMode(String context)
 	{
+		this.drawContext = context;
 		modeType = RGB;
 		v1Max = 255;
 		v2Max = 255;
@@ -16,8 +19,9 @@ public class ColorMode {
 		aMax = 255;
 	}
 	
-	public ColorMode(int type, float v1, float v2, float v3, float a)
+	public ColorMode(String context, int type, float v1, float v2, float v3, float a)
 	{
+		this.drawContext = context;
 		modeType = type;
 		v1Max = v1;
 		v2Max = v2;
@@ -25,7 +29,7 @@ public class ColorMode {
 		aMax = a;
 	}
 	
-	public static ColorMode fromString(String mode)
+	public static ColorMode fromString(String context, String mode)
 	{
 		String[] elements = mode.split(",");
 		
@@ -37,19 +41,19 @@ public class ColorMode {
 		
 		if (elements.length == 1) {
 			// colorMode in the form of colorMode(type)
-			return new ColorMode(type, 255, 255, 255, 255);
+			return new ColorMode(context, type, 255, 255, 255, 255);
 		}
 		else if (elements.length == 2) {
 			// colorMode in the form of colorMode(type, max)
 			float max = Float.parseFloat(elements[1].trim());
-			return new ColorMode(type, max, max, max, max);
+			return new ColorMode(context, type, max, max, max, max);
 		}
 		else if (elements.length == 4) {
 			// colorMode in the form of colorMode(type, max1, max2, max3)
 			float r = Float.parseFloat(elements[1].trim());
 			float g = Float.parseFloat(elements[2].trim());
 			float b = Float.parseFloat(elements[3].trim());
-			return new ColorMode(type, r, g, b, 255);
+			return new ColorMode(context, type, r, g, b, 255);
 		}
 		else if (elements.length == 5) {
 			// colorMode in the form of colorMode(type, max1, max2, max3, maxA)
@@ -57,7 +61,7 @@ public class ColorMode {
 			float g = Float.parseFloat(elements[2].trim());
 			float b = Float.parseFloat(elements[3].trim());
 			float a = Float.parseFloat(elements[4].trim());
-			return new ColorMode(type, r, g, b, a);			
+			return new ColorMode(context, type, r, g, b, a);			
 		}
 
 		// failed to parse the given string

@@ -38,5 +38,5 @@ todo:
 * add space before and after the code. ** done
 * add three number modes: integers, floats and floats between -1 - 1. ** done. handling ints and floats differently
 - add random number generator that user can attach handle to.
-- generate random port number for OSC
+* generate random port number for OSC ** done
 - save code when user accept changes

@@ -1,14 +1,15 @@
 package processing.mode.tweak;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 import com.illposed.osc.*;
 
 public class OSCSender {
 	
-	public static void sendFloat(int index, float val) throws Exception
+	public static void sendFloat(int index, float val, int port) throws Exception
 	{
-		OSCPortOut sender = new OSCPortOut();
+		OSCPortOut sender = new OSCPortOut(InetAddress.getByName("localhost"), port);
 		ArrayList<Object> args = new ArrayList<Object>();
 		args.add(new Integer(index));
 		args.add(new Float(val));
@@ -20,9 +21,9 @@ public class OSCSender {
 		 }
 	}
 	
-	public static void sendInt(int index, int val) throws Exception
+	public static void sendInt(int index, int val, int port) throws Exception
 	{
-		OSCPortOut sender = new OSCPortOut();
+		OSCPortOut sender = new OSCPortOut(InetAddress.getByName("localhost"), port);
 		ArrayList<Object> args = new ArrayList<Object>();
 		args.add(new Integer(index));
 		args.add(new Integer(val));
@@ -35,9 +36,9 @@ public class OSCSender {
 		 }
 	}
 
-	public static void sendLong(int index, long val) throws Exception
+	public static void sendLong(int index, long val, int port) throws Exception
 	{
-		OSCPortOut sender = new OSCPortOut();
+		OSCPortOut sender = new OSCPortOut(InetAddress.getByName("localhost"), port);
 		ArrayList<Object> args = new ArrayList<Object>();
 		args.add(new Integer(index));
 		args.add(new Long(val));

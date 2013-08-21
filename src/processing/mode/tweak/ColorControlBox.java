@@ -15,13 +15,16 @@ public class ColorControlBox {
 	boolean isBW;
 	boolean isHex;
 	
+	String drawContext;
+	
 	// interface
 	int x, y, width, height;
 	TweakTextAreaPainter painter;
 	boolean visible;
 	
-	public ColorControlBox(ColorMode mode, ArrayList<Handle> handles)
+	public ColorControlBox(String context, ColorMode mode, ArrayList<Handle> handles)
 	{
+		this.drawContext = context;
 		this.colorMode = mode;
 		this.handles = handles;
 		

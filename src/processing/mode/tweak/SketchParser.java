@@ -2,6 +2,9 @@ package processing.mode.tweak;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,21 +39,12 @@ public class SketchParser
 		colorModes = findAllColorModes();
 		colorBoxes = createColorBoxes();
 		
-		/* If there is more than one color mode in this sketch,
-		 * allow only hex and webcolors.
-		 * Current there is no notion of order of execution so we
+		/* If there is more than one color mode per context,
+		 * allow only hex and webcolors in this context.
+		 * Currently there is no notion of order of execution so we
 		 * cannot know which color mode relate to a color.
 		 */
-		if (colorModes.size() > 1) {
-			ArrayList<ColorControlBox> toDelete = new ArrayList<ColorControlBox>();
-			for (ColorControlBox ccb : colorBoxes)
-			{
-				if (!ccb.isHex) {
-					toDelete.add(ccb);
-				}
-			}
-			colorBoxes.removeAll(toDelete);
-		}
+		handleMultipleColorModes();
 	}
 	
 	/**
@@ -68,7 +62,7 @@ public class SketchParser
 		for (int i=0; i<codeTabs.length; i++)
 		{
 			String c = codeTabs[i];
-			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
+			Pattern p = Pattern.compile("[\\[\\{<>(),\\t\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
 			Matcher m = p.matcher(c);
         
 			while (m.find())
@@ -150,7 +144,7 @@ public class SketchParser
 		for (int i=0; i<codeTabs.length; i++)
 		{
 			String c = codeTabs[i];
-			Pattern p = Pattern.compile("[\\[\\{<>(),\\s\\+\\-\\/\\*^%!|&=?:~]0x[A-Fa-f0-9]+");
+			Pattern p = Pattern.compile("[\\[\\{<>(),\\t\\s\\+\\-\\/\\*^%!|&=?:~]0x[A-Fa-f0-9]+");
 			Matcher m = p.matcher(c);
         
 			while (m.find())
@@ -291,7 +285,9 @@ public class SketchParser
 				String modeDesc = tab.substring(parOpen+1, parClose);
 				ColorMode newMode;
 				try {
-					newMode = ColorMode.fromString(modeDesc);
+					String context = getObject(index-9, tab);
+					System.out.println("found color mode in context: " + context);
+					newMode = ColorMode.fromString(context, modeDesc);
 				}
 				catch (Exception e) {
 					// failed to parse the mode, don't add
@@ -300,12 +296,7 @@ public class SketchParser
 				modes.add(newMode);
 			}
 		}
-		
-		if (modes.size() == 0) {
-			// create the default mode
-			modes.add(new ColorMode());
-		}
-		
+				
 		return modes;
 	}
 	
@@ -337,8 +328,6 @@ public class SketchParser
 					continue;
 				}
 
-				System.out.println("found color use at " + openPar + " - " + closePar + "('" + tab.substring(openPar, closePar) + "')");
-				
 				// look for handles inside the parenthesis
 				for (Handle handle : allHandles)
 				{
@@ -358,7 +347,7 @@ public class SketchParser
 					 */
 					String insidePar = tab.substring(openPar+1, closePar);
 					for (Handle h : colorHandles) {
-						insidePar = insidePar.replace(h.strValue, "");
+						insidePar = insidePar.replaceFirst(h.strValue, "");
 					}
 					System.out.println("after removing all values we have: '" + insidePar + "'");
 					// make sure there is only ' ' and ',' left in the string.
@@ -373,7 +362,11 @@ public class SketchParser
 					
 					// create a new color box
 					if (!garbage) {
-						ccbs.add(new ColorControlBox(colorModes.get(0), colorHandles));
+						// find the context of the color (e.g. this.fill() or <object>.fill())
+						String context = getObject(m.start(), tab);
+						System.out.println("context = " + context);
+						
+						ccbs.add(new ColorControlBox(context, getColorModeForContext(context), colorHandles));
 					}
 				}
 			}
@@ -381,6 +374,64 @@ public class SketchParser
 		
 		return ccbs;
 	}
+	
+	private ColorMode getColorModeForContext(String context)
+	{
+		System.out.println("**** looking for color mode for context: " + context);
+		for (ColorMode cm: colorModes) {
+			if (cm.drawContext.equals(context)) {
+				System.out.println("found!");
+				return cm;
+			}
+		}
+		
+		// if non found, create the default color mode for this context and return it
+		System.out.println("not found, creating a new one");
+		ColorMode newCM = new ColorMode(context);
+		colorModes.add(newCM);
+		
+		return newCM;
+	}
+
+	private void handleMultipleColorModes()
+	{
+		// count how many color modes per context
+		Map<String, Integer> modeCount = new HashMap<String, Integer>();
+		for (ColorMode cm : colorModes)
+		{
+			Integer prev = modeCount.get(cm.drawContext);
+			if (prev == null) {
+				prev=0;
+			}
+			modeCount.put(cm.drawContext, prev+1);
+		}
+
+		// find the contexts that have more than one color mode
+		ArrayList<String> multipleContexts = new ArrayList<String>();
+		Set<String> allContexts = modeCount.keySet();
+		for (String context : allContexts) {
+			System.out.println("context " + context + ": " + modeCount.get(context));
+			if (modeCount.get(context) > 1) {
+				multipleContexts.add(context);
+			}
+		}
+
+		/* keep only hex and web color boxes in color calls
+		 * that belong to 'multipleContexts' contexts
+		 */
+		ArrayList<ColorControlBox> toDelete = new ArrayList<ColorControlBox>();
+		for (String context : multipleContexts)
+		{
+			for (ColorControlBox ccb : colorBoxes)
+			{
+				if (ccb.drawContext.equals(context) && !ccb.isHex) {
+					toDelete.add(ccb);
+				}
+			}
+		}
+		colorBoxes.removeAll(toDelete);
+	}
+
 	
 	public static boolean containsTweakComment(String[] codeTabs)
 	{
@@ -423,7 +474,7 @@ public class SketchParser
 		for (int i=pos; i>=0; i--)
 		{
 			char c = code.charAt(i);
-			if (c == ' ') {
+			if (c == ' ' || c == '\t') {
 				continue;
 			}
 			if (c==',' || c=='{' || c=='[' || c=='(' ||
@@ -543,7 +594,39 @@ public class SketchParser
 			pos--;
 		}
 		
-		return -1;
+		return 0;
+	}
+	
+	/** returns the object of the function starting at 'pos'
+	 * 
+	 * @param pos
+	 * @param code
+	 * @return
+	 */
+	private String getObject(int pos, String code)
+	{
+		boolean readObject = false;
+		String obj = "this";
+		
+		while (pos-- >= 0) {
+			if (code.charAt(pos) == '.') {
+				if (!readObject) {
+					obj = "";
+					readObject = true;
+				}
+				else {
+					break;
+				}
+			}
+			else if (code.charAt(pos) == ' ' || code.charAt(pos) == '\t') {
+				break;
+			}
+			else if (readObject) {
+				obj = code.charAt(pos) + obj;
+			}
+		}
+		
+		return obj;
 	}
 	
 	private String replaceString(String str, int start, int end, String put)

@@ -32,9 +32,8 @@ public class Handle {
 	int xCenter, xCurrent, xLast;
 	HProgressBar progBar = null;
 	String textFormat;
-	
-	boolean showDiff;
-	
+
+	int oscPort;
 	
 	public Handle(String t, String n, int vi, String v, int ti, int l, int sc, int ec, int nd)
 	{
@@ -245,21 +244,26 @@ public class Handle {
 		colorBox = box;
 	}
 	
+	public void setOscPort(int port)
+	{
+		oscPort = port;
+	}
+	
 	public void oscSendNewValue()
 	{
 		int index = varIndex;
 		try {
 			if (type == "int") {
-				OSCSender.sendInt(index, newValue.intValue());
+				OSCSender.sendInt(index, newValue.intValue(), oscPort);
 			}
 			else if (type == "hex") {
-				OSCSender.sendInt(index, newValue.intValue());
+				OSCSender.sendInt(index, newValue.intValue(), oscPort);
 			}
 			else if (type == "webcolor") {
-				OSCSender.sendInt(index, newValue.intValue());
+				OSCSender.sendInt(index, newValue.intValue(), oscPort);
 			}
 			else if (type == "float") {
-				OSCSender.sendFloat(index, newValue.floatValue());
+				OSCSender.sendFloat(index, newValue.floatValue(), oscPort);
 			}
 		} catch (Exception e) { System.out.println("error sending OSC message!"); }
 	}
