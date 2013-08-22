@@ -30,6 +30,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.JCheckBoxMenuItem;
@@ -332,6 +333,11 @@ public class TweakEditor extends JavaEditor
     	if (numbers.size() == 0)
     		return false;
     	
+    	int setupStartPos = SketchParser.getSetupStart(baseCode[0]);
+    	if (setupStartPos < 0) {
+    		return false;
+    	}
+    	
     	System.out.print("Tweak: instrument code... ");
 		
 		// Copy current program to interactive program
@@ -411,8 +417,7 @@ public class TweakEditor extends JavaEditor
     	
     	// add call to our initAllVars and initOSC functions from the setup() function.
     	String addToSetup = "\n  tweakmode_initAllVars();\n  tweakmode_initOSC();\n\n";
-    	int pos = getSetupStart(c);
-    	c = replaceString(c, pos, pos, addToSetup);
+    	c = replaceString(c, setupStartPos, setupStartPos, addToSetup);
 
     	code[0].setProgram(header + c);
     	
@@ -427,7 +432,6 @@ public class TweakEditor extends JavaEditor
     			System.out.println(code[i].getProgram());
     		}
     	}
-    	
 
     	return true;
     }	
@@ -455,14 +459,5 @@ public class TweakEditor extends JavaEditor
 				count++;
 		}
 		return count;
-	}
-
-	private int getSetupStart(String code)
-	{
-		int pos;
-		
-		pos = code.indexOf("setup()");
-		pos = code.indexOf("{", pos);
-		return pos+1;
 	}
 }

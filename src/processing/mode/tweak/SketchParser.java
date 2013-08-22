@@ -281,19 +281,10 @@ public class SketchParser
 					continue;
 				}
 				
-				// try to parse this mode
+				// add this mode
 				String modeDesc = tab.substring(parOpen+1, parClose);
-				ColorMode newMode;
-				try {
-					String context = getObject(index-9, tab);
-					System.out.println("found color mode in context: " + context);
-					newMode = ColorMode.fromString(context, modeDesc);
-				}
-				catch (Exception e) {
-					// failed to parse the mode, don't add
-					continue;
-				}
-				modes.add(newMode);
+				String context = getObject(index-9, tab);
+				modes.add(ColorMode.fromString(context, modeDesc));
 			}
 		}
 				
@@ -365,8 +356,12 @@ public class SketchParser
 						// find the context of the color (e.g. this.fill() or <object>.fill())
 						String context = getObject(m.start(), tab);
 						System.out.println("context = " + context);
+						ColorMode cmode = getColorModeForContext(context);
 						
-						ccbs.add(new ColorControlBox(context, getColorModeForContext(context), colorHandles));
+						// not adding color operations for modes we couldn't understand 
+						if (!cmode.unrecognizedMode) {
+							ccbs.add(new ColorControlBox(context, cmode, colorHandles));
+						}
 					}
 				}
 			}
@@ -544,25 +539,49 @@ public class SketchParser
  	*/
 	private boolean isGlobal(int pos, String code)
 	{
-		int cbOpenNum = 0;	// count '{'
-		int cbCloseNum = 0;	// count '}'
+		int curlyScope = 0;	// count '{-}'
 
 		for (int c=pos; c>=0; c--)
 		{
 			if (code.charAt(c) == '{') {
-				cbOpenNum++;
+				// check if a function or an array assignment
+				for (int cc=c; cc>=0; cc--) {
+					if (code.charAt(cc)==')') {
+						curlyScope++;
+						break;
+					}
+					else if (code.charAt(cc)==']') {
+						break;
+					}
+					else if (code.charAt(cc)==';') {
+						break;
+					}
+				}
 			}
 			else if (code.charAt(c) == '}') {
-				cbCloseNum++;
+				// check if a function or an array assignment
+				for (int cc=c; cc>=0; cc--) {
+					if (code.charAt(cc)==')') {
+						curlyScope--;
+						break;
+					}
+					else if (code.charAt(cc)==']') {
+						break;
+					}
+					else if (code.charAt(cc)==';') {
+						break;
+					}
+				}
 			}
 		}
 
-		if (cbOpenNum == cbCloseNum) {
+		if (curlyScope == 0) {
+			// it is a global position
 			return true;
 		}
 
 		return false;
-	}
+	};
 	
 	private boolean isInComment(int pos, String code)
 	{
@@ -628,6 +647,20 @@ public class SketchParser
 		
 		return obj;
 	}
+	
+	public static int getSetupStart(String code)
+	{
+		int pos;
+		Pattern p = Pattern.compile("void[\\s\\t\\r\\n]*setup[\\s\\t]*\\(\\)[\\s\\t\\r\\n]*\\{");
+		Matcher m = p.matcher(code);
+		
+		if (m.find()) {
+			return m.end();
+		}
+		
+		return -1;
+	}
+
 	
 	private String replaceString(String str, int start, int end, String put)
 	{

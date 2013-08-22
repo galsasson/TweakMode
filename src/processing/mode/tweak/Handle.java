@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
+import java.math.BigDecimal;
 import java.util.Comparator;
 
 public class Handle {
@@ -18,7 +19,7 @@ public class Handle {
 	int tabIndex;
 	int startChar, endChar, line;
 	int newStartChar, newEndChar;
-	int numDigits;					// number of digits after the decimal point
+	int decimalPlaces;		// number of digits after the decimal point
 	float incValue;
 	
 	java.lang.Number value, newValue;
@@ -35,7 +36,7 @@ public class Handle {
 
 	int oscPort;
 	
-	public Handle(String t, String n, int vi, String v, int ti, int l, int sc, int ec, int nd)
+	public Handle(String t, String n, int vi, String v, int ti, int l, int sc, int ec, int dp)
 	{
 		type = t;
 		name = n;
@@ -45,9 +46,9 @@ public class Handle {
 		line = l;
 		startChar = sc;
 		endChar = ec;
-		numDigits = nd;
+		decimalPlaces = dp;
 		
-		incValue = (float)(1/Math.pow(10, numDigits));
+		incValue = (float)(1/Math.pow(10, decimalPlaces));
 
 		if (type == "int") {
 			value = newValue = Integer.parseInt(strValue);
@@ -70,7 +71,7 @@ public class Handle {
 		else if (type == "float") {
 			value = newValue = Float.parseFloat(strValue);
 			strNewValue = strValue;
-			textFormat = "%.0" + numDigits + "f";
+			textFormat = "%.0" + decimalPlaces + "f";
 		}
 		
 		newStartChar = startChar;
@@ -113,25 +114,21 @@ public class Handle {
 		float change = getChange();
 		
 		if (type == "int") {
-			if ((Integer)newValue + (int)change > Integer.MAX_VALUE ||
-					(Integer)newValue + (int)change < Integer.MIN_VALUE) {
+			if (newValue.intValue() + (int)change > Integer.MAX_VALUE ||
+					newValue.intValue() + (int)change < Integer.MIN_VALUE) {
 				change = 0;
 				return;
 			}
-			setValue((Integer)newValue + (int)change);
+			setValue(newValue.intValue() + (int)change);
 		}
 		else if (type == "hex") {
-			setValue((Integer)newValue + (int)change);
+			setValue(newValue.intValue() + (int)change);
 		}
 		else if (type == "webcolor") {
 			setValue(newValue.intValue() + (int)change);
 		}
 		else if (type == "float") {
-			if ((Float)newValue + change > Float.MAX_VALUE ||
-					(Float)newValue + change < Float.MIN_VALUE) {
-				change = 0;
-			}
-			setValue((Float)newValue + change);
+			setValue(newValue.floatValue() + change);
 		}
 
 		updateColorBox();
@@ -154,7 +151,9 @@ public class Handle {
 			strNewValue = String.format(textFormat, val);
 		}
 		else if (type == "float") {
-			newValue = value.floatValue();
+			BigDecimal bd = new BigDecimal(value.floatValue());
+			bd = bd.setScale(decimalPlaces, BigDecimal.ROUND_HALF_UP);
+			newValue = bd.floatValue();
 			strNewValue = String.format(textFormat, newValue.floatValue());			
 		}
 		
@@ -173,7 +172,6 @@ public class Handle {
 	private float getChange()
 	{
 		int pixels = xCurrent - xLast;
-
 		return (float)pixels*incValue;
 	}
 	
@@ -226,16 +224,16 @@ public class Handle {
 	public boolean valueChanged()
 	{
 		if (type == "int") {
-			return !((Integer)value).equals((Integer)newValue);
+			return (value.intValue() != newValue.intValue());
 		}
 		else if (type == "hex") {
-			return (!((Integer)value).equals((Integer)newValue));
+			return (value.intValue() != newValue.intValue());
 		}
 		else if (type == "webcolor") {
-			return (!((Integer)value).equals((Integer)newValue));
+			return (value.intValue() != newValue.intValue());
 		}
 		else {
-			return !((Float)value).equals((Float)newValue);
+			return (value.floatValue() != newValue.floatValue());
 		}
 	}
 	
