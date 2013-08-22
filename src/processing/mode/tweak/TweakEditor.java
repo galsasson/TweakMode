@@ -28,6 +28,7 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.Box;
@@ -141,17 +142,17 @@ public class TweakEditor extends JavaEditor
 
 		if (modified) {
 			// ask to keep the values
-			int ret = Base.showYesNoQuestion(this, "Sketch Tweak", 
-									"Keep the changes?", 
+			int ret = Base.showYesNoQuestion(this, "Tweak Mode",
+									"Keep the changes?",
 									"You changed some values in your sketch. Would you like to keep the changes?");
 			if (ret == 1) {
-				// don't keep changes
+				// NO! don't keep changes
 				loadSavedCode();
 				// update the painter to draw the saved (old) code
 				tweakTextArea.invalidate();
 			}
 			else {
-				// keep changes
+				// YES! keep changes
 				// the new values are already present, just make sure the user can save the modified tabs
 				for (int i=0; i<sketch.getCodeCount(); i++) {
 					if (modifiedTabs[i]) {
@@ -171,6 +172,15 @@ public class TweakEditor extends JavaEditor
 						}
 					}
 				}
+				
+				// save the sketch
+				try {
+					sketch.save();
+				}
+				catch (IOException e) {
+					Base.showWarning("Tweak Mode", "Could not save the modified sketch!", e);
+				}
+				
 				// repaint the editor header (show the modified tabs)
 				header.repaint();
 				tweakTextArea.invalidate();
