@@ -358,9 +358,17 @@ public class SketchParser
 						System.out.println("context = " + context);
 						ColorMode cmode = getColorModeForContext(context);
 						
-						// not adding color operations for modes we couldn't understand 
-						if (!cmode.unrecognizedMode) {
-							ccbs.add(new ColorControlBox(context, cmode, colorHandles));
+						// not adding color operations for modes we couldn't understand
+						ColorControlBox newCCB = new ColorControlBox(context, cmode, colorHandles);
+						
+						if (cmode.unrecognizedMode) {
+							// the color mode is unrecognizable add only if is a hex or webcolor
+							if (newCCB.isHex) {
+								ccbs.add(newCCB);
+							}
+						}
+						else {
+							ccbs.add(newCCB);
 						}
 					}
 				}

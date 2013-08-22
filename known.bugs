@@ -1,5 +1,5 @@
 Known Bugs:
-- sometimes 0.0 is displayed as -0.0 (might be a rounding issue)
+* sometimes 0.0 is displayed as -0.0 (might be a rounding issue) ** fixed
 * cannot handle more than one sketch at a time (move all sketch related code form TweakMode to TweakEditor) ** fixed
 - don't allow tweaking static mode
 
