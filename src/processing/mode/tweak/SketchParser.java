@@ -22,14 +22,18 @@ public class SketchParser
 	ArrayList<ColorMode> colorModes;
 	ArrayList<ColorControlBox> colorBoxes;
 	
+	ArrayList<Range> scientificNotations[];
+	
 	public SketchParser(String[] codeTabs, boolean requiresComment)
 	{
 		this.codeTabs = codeTabs;
 		this.requiresComment = requiresComment;
 		intVarCount=0;
 		floatVarCount=0;
-		allHandles = new ArrayList<Handle>();
 		
+		scientificNotations = getAllScientificNotations();
+		
+		allHandles = new ArrayList<Handle>();
 		allHandles.addAll(findAllNumbers());
 		allHandles.addAll(findAllHexNumbers());
 		allHandles.addAll(findAllWebColorNumbers());
@@ -59,12 +63,12 @@ public class SketchParser
 		/* for every number found:
 		 * save its type (int/float), name, value and position in code.
 		 */
+		Pattern p = Pattern.compile("[\\[\\{<>(),\\t\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
 		for (int i=0; i<codeTabs.length; i++)
 		{
 			String c = codeTabs[i];
-			Pattern p = Pattern.compile("[\\[\\{<>(),\\t\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
 			Matcher m = p.matcher(c);
-        
+
 			while (m.find())
 			{
 				boolean forceFloat = false;
@@ -81,6 +85,18 @@ public class SketchParser
 					if (!lineHasTweakComment(start, c)) {
 						continue;
 					}
+				}
+
+				// ignore scientific notation (e.g. 1e-6)
+				boolean found = false;
+				for (Range r : scientificNotations[i]) {
+					if (r.contains(start)) {
+						found=true;
+						break;
+					}
+				}
+				if (found) {
+					continue;
 				}
 
 				// remove any 'f' after the number
@@ -436,6 +452,24 @@ public class SketchParser
 		}
 		colorBoxes.removeAll(toDelete);
 	}
+	
+	public ArrayList<Range>[] getAllScientificNotations()
+	{
+		ArrayList<Range> notations[] = new ArrayList[codeTabs.length];
+		
+		Pattern p = Pattern.compile("[+\\-]?(?:0|[1-9]\\d*)(?:\\.\\d*)?[eE][+\\-]?\\d+");
+		for (int i=0; i<codeTabs.length; i++)
+		{
+			notations[i] = new ArrayList<Range>();
+			Matcher m = p.matcher(codeTabs[i]);
+			while (m.find()) {
+				notations[i].add(new Range(m.start(), m.end()));
+				System.out.println("found scientific notation: " + m.group());
+			}
+		}
+		
+		return notations;
+	}
 
 	
 	public static boolean containsTweakComment(String[] codeTabs)
@@ -677,5 +711,25 @@ public class SketchParser
 	private String replaceString(String str, int start, int end, String put)
 	{
 		return str.substring(0, start) + put + str.substring(end, str.length());
+	}
+	
+	class Range
+	{
+		int start;
+		int end;
+		
+		public Range(int s, int e) {
+			start = s;
+			end = e;
+		}
+		
+		public boolean contains(int v)
+		{
+			if (v>=start && v<end) {
+				return true;
+			}
+			
+			return false;
+		}
 	}
 }
