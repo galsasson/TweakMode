@@ -67,6 +67,7 @@ public class SketchParser
         
 			while (m.find())
 			{
+				boolean forceFloat = false;
 				int start = m.start()+1;
 				int end = m.end();
 				
@@ -84,6 +85,7 @@ public class SketchParser
 
 				// remove any 'f' after the number
 				if (c.charAt(end) == 'f') {
+					forceFloat = true;
 					end++;
 				}
 				
@@ -111,7 +113,7 @@ public class SketchParser
 				int line = countLines(c.substring(0, start)) - 1;			// zero based
 				String value = c.substring(start, end);
 				//value
-    			if (value.contains(".")) {
+    			if (value.contains(".") || forceFloat) {
     				// consider this as a float
         			String name = varPrefix + "_float[" + floatVarCount +"]";
         			int decimalDigits = getNumDigitsAfterPoint(value);
@@ -497,13 +499,15 @@ public class SketchParser
 	
 	private int getNumDigitsAfterPoint(String number)
 	{
-		String tmp[] = number.split("\\.");
-
-		if (tmp.length < 2) {
+		Pattern p = Pattern.compile("\\.[0-9]+");
+		Matcher m = p.matcher(number);
+		
+		if (m.find()) {
+			return m.end() - m.start() - 1;
+		}
+		else {
 			return 0;
 		}
-
-		return tmp[1].length();
 	}
 
 	private int countLines(String str)
