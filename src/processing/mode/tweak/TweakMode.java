@@ -120,7 +120,7 @@ public class TweakMode extends JavaMode {
 		final TweakEditor editor = (TweakEditor)listener;
 		
 		boolean launchInteractive = false;
-		System.out.println("Tweak: run");
+		System.out.println("Running in TweakMode");
 
 		if (isSketchModified(sketch)) {
 			editor.deactivateRun();

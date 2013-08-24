@@ -427,8 +427,6 @@ public class TweakEditor extends JavaEditor
 
     	code[0].setProgram(header + c);
     	
-    	System.out.println("ok");
-
     	/* print out modified code */
     	if (tweakMode.dumpModifiedCode) {
     		System.out.println("\nModified code:\n");

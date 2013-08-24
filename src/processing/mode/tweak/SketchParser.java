@@ -336,7 +336,6 @@ public class SketchParser
 					if (handle.startChar > openPar &&
 							handle.endChar <= closePar) {
 						// we have a match
-						System.out.println("handle match: " + handle.newValue);
 						colorHandles.add(handle);
 					}
 				}
@@ -350,7 +349,7 @@ public class SketchParser
 					for (Handle h : colorHandles) {
 						insidePar = insidePar.replaceFirst(h.strValue, "");
 					}
-					System.out.println("after removing all values we have: '" + insidePar + "'");
+
 					// make sure there is only ' ' and ',' left in the string.
 					boolean garbage = false;
 					for (int j=0; j<insidePar.length(); j++) {
@@ -365,7 +364,6 @@ public class SketchParser
 					if (!garbage) {
 						// find the context of the color (e.g. this.fill() or <object>.fill())
 						String context = getObject(m.start(), tab);
-						System.out.println("context = " + context);
 						ColorMode cmode = getColorModeForContext(context);
 						
 						// not adding color operations for modes we couldn't understand
@@ -388,16 +386,13 @@ public class SketchParser
 	
 	private ColorMode getColorModeForContext(String context)
 	{
-		System.out.println("**** looking for color mode for context: " + context);
 		for (ColorMode cm: colorModes) {
 			if (cm.drawContext.equals(context)) {
-				System.out.println("found!");
 				return cm;
 			}
 		}
 		
 		// if non found, create the default color mode for this context and return it
-		System.out.println("not found, creating a new one");
 		ColorMode newCM = new ColorMode(context);
 		colorModes.add(newCM);
 		
@@ -421,7 +416,6 @@ public class SketchParser
 		ArrayList<String> multipleContexts = new ArrayList<String>();
 		Set<String> allContexts = modeCount.keySet();
 		for (String context : allContexts) {
-			System.out.println("context " + context + ": " + modeCount.get(context));
 			if (modeCount.get(context) > 1) {
 				multipleContexts.add(context);
 			}
@@ -456,7 +450,6 @@ public class SketchParser
 			Matcher m = p.matcher(codeTabs[i]);
 			while (m.find()) {
 				notations[i].add(new Range(m.start(), m.end()));
-				System.out.println("found scientific notation: " + m.group());
 			}
 		}
 		
