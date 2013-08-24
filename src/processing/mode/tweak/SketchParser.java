@@ -33,18 +33,14 @@ public class SketchParser
 		
 		scientificNotations = getAllScientificNotations();
 		
-		allHandles = new ArrayList[codeTabs.length];
-		findAllNumbers();
-		findAllHexNumbers();
-		findAllWebColorNumbers();
-		for (int i=0; i<codeTabs.length; i++) {
-			Collections.sort(allHandles[i], new HandleComparator());
-		}
+		// find, add, and sort all tweakable numbers in the sketch
+		addAllNumbers();
 		
 		// handle colors
 		colorModes = findAllColorModes();
 		colorBoxes = new ArrayList[codeTabs.length];
 		createColorBoxes();
+		createColorBoxesForLights();
 		
 		/* If there is more than one color mode per context,
 		 * allow only hex and webcolors in this context.
@@ -54,12 +50,23 @@ public class SketchParser
 		handleMultipleColorModes();
 	}
 	
+	public void addAllNumbers()
+	{
+		allHandles = new ArrayList[codeTabs.length];
+		addAllDecimalNumbers();
+		addAllHexNumbers();
+		addAllWebColorNumbers();
+		for (int i=0; i<codeTabs.length; i++) {
+			Collections.sort(allHandles[i], new HandleComparator());
+		}		
+	}
+	
 	/**
 	 * Get a list of all the numbers in this sketch
 	 * @return
 	 * list of all numbers in the sketch (excluding hexadecimals)
 	 */
-	private void findAllNumbers()
+	private void addAllDecimalNumbers()
 	{
 		/* for every number found:
 		 * save its type (int/float), name, value and position in code.
@@ -152,7 +159,7 @@ public class SketchParser
 	 * @return
 	 * list of all hexadecimal numbers in the sketch
 	 */
-	private void findAllHexNumbers()
+	private void addAllHexNumbers()
 	{
 		/* for every number found:
 		 * save its type (int/float), name, value and position in code.
@@ -212,7 +219,7 @@ public class SketchParser
 	 * @return
 	 * list of all hexadecimal numbers in the sketch
 	 */
-	private void findAllWebColorNumbers()
+	private void addAllWebColorNumbers()
 	{
 		Pattern p = Pattern.compile("#[A-Fa-f0-9]{6}");
 		for (int i=0; i<codeTabs.length; i++)
@@ -303,8 +310,6 @@ public class SketchParser
 	
 	private void createColorBoxes()
 	{
-		ArrayList<ColorControlBox> ccbs = new ArrayList<ColorControlBox>();
-		
 		// search tab for the functions: 'color', 'fill', 'stroke', 'background', 'tint'
 		Pattern p = Pattern.compile("color\\(|color\\s\\(|fill[\\(\\s]|stroke[\\(\\s]|background[\\(\\s]|tint[\\(\\s]");
 		for (int i=0; i<codeTabs.length; i++)
@@ -384,6 +389,99 @@ public class SketchParser
 		}
 	}
 	
+	private void createColorBoxesForLights()
+	{
+		// search code for light color and material color functions.
+		Pattern p = Pattern.compile("ambientLight[\\(\\s]|directionalLight[\\(\\s]"+
+					"|pointLight[\\(\\s]|spotLight[\\(\\s]|lightSpecular[\\(\\s]"+
+					"|specular[\\(\\s]|ambient[\\(\\s]|emissive[\\(\\s]");
+		for (int i=0; i<codeTabs.length; i++)
+		{
+			String tab = codeTabs[i];
+			Matcher m = p.matcher(tab);
+			
+			while (m.find())
+			{
+				ArrayList<Handle> colorHandles = new ArrayList<Handle>();
+				
+				// look for the '(' and ')' positions
+				int openPar = tab.indexOf("(", m.start());
+				int closePar = tab.indexOf(")", m.end());
+				if (openPar < 0 || closePar < 0) {
+					// ignore this color
+					continue;
+				}
+				
+				if (isInComment(m.start(), tab)) {
+					// ignore colors in a comment
+					continue;
+				}
+
+				// put 'colorParamsEnd' after three parameters inside the parenthesis or at the close
+				int colorParamsEnd = openPar;
+				int commas=3;
+				while (commas-- > 0) {
+					colorParamsEnd=tab.indexOf(",", colorParamsEnd+1);
+					if (colorParamsEnd < 0 ||
+							colorParamsEnd > closePar) {
+						colorParamsEnd = closePar;
+						break;
+					}
+				}
+				
+				for (Handle handle : allHandles[i])
+				{
+					if (handle.startChar > openPar &&
+							handle.endChar <= colorParamsEnd) {
+						// we have a match
+						colorHandles.add(handle);
+					}
+				}
+				
+				if (colorHandles.size() > 0) {
+					/* make sure there is no other stuff between '()' like variables.
+					 * substract all handle values from string inside parenthesis and
+					 * check there is no garbage left
+					 */
+					String insidePar = tab.substring(openPar+1, colorParamsEnd);
+					for (Handle h : colorHandles) {
+						insidePar = insidePar.replaceFirst(h.strValue, "");
+					}
+
+					// make sure there is only ' ' and ',' left in the string.
+					boolean garbage = false;
+					for (int j=0; j<insidePar.length(); j++) {
+						if (insidePar.charAt(j) != ' ' && insidePar.charAt(j) != ',') {
+							// don't add this color box because we can not know the
+							// real value of this color
+							garbage = true;
+						}
+					}
+					
+					// create a new color box
+					if (!garbage) {
+						// find the context of the color (e.g. this.fill() or <object>.fill())
+						String context = getObject(m.start(), tab);
+						ColorMode cmode = getColorModeForContext(context);
+						
+						// not adding color operations for modes we couldn't understand
+						ColorControlBox newCCB = new ColorControlBox(context, cmode, colorHandles);
+						
+						if (cmode.unrecognizedMode) {
+							// the color mode is unrecognizable add only if is a hex or webcolor
+							if (newCCB.isHex) {
+								colorBoxes[i].add(newCCB);
+							}
+						}
+						else {
+							colorBoxes[i].add(newCCB);
+						}
+					}
+				}
+			}
+		}
+	}
+
 	private ColorMode getColorModeForContext(String context)
 	{
 		for (ColorMode cm: colorModes) {
