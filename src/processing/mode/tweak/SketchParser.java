@@ -18,9 +18,9 @@ public class SketchParser
 	
 	String[] codeTabs;
 	boolean requiresComment;
-	ArrayList<Handle> allHandles;
+	ArrayList<Handle> allHandles[];
 	ArrayList<ColorMode> colorModes;
-	ArrayList<ColorControlBox> colorBoxes;
+	ArrayList<ColorControlBox> colorBoxes[];
 	
 	ArrayList<Range> scientificNotations[];
 	
@@ -33,15 +33,18 @@ public class SketchParser
 		
 		scientificNotations = getAllScientificNotations();
 		
-		allHandles = new ArrayList<Handle>();
-		allHandles.addAll(findAllNumbers());
-		allHandles.addAll(findAllHexNumbers());
-		allHandles.addAll(findAllWebColorNumbers());
-		Collections.sort(allHandles, new HandleComparator());
+		allHandles = new ArrayList[codeTabs.length];
+		findAllNumbers();
+		findAllHexNumbers();
+		findAllWebColorNumbers();
+		for (int i=0; i<codeTabs.length; i++) {
+			Collections.sort(allHandles[i], new HandleComparator());
+		}
 		
 		// handle colors
 		colorModes = findAllColorModes();
-		colorBoxes = createColorBoxes();
+		colorBoxes = new ArrayList[codeTabs.length];
+		createColorBoxes();
 		
 		/* If there is more than one color mode per context,
 		 * allow only hex and webcolors in this context.
@@ -56,16 +59,15 @@ public class SketchParser
 	 * @return
 	 * list of all numbers in the sketch (excluding hexadecimals)
 	 */
-	private ArrayList<Handle> findAllNumbers()
+	private void findAllNumbers()
 	{
-		ArrayList<Handle> numbers = new ArrayList<Handle>();
-
 		/* for every number found:
 		 * save its type (int/float), name, value and position in code.
 		 */
 		Pattern p = Pattern.compile("[\\[\\{<>(),\\t\\s\\+\\-\\/\\*^%!|&=?:~]\\d+\\.?\\d*");
 		for (int i=0; i<codeTabs.length; i++)
 		{
+			allHandles[i] = new ArrayList<Handle>();
 			String c = codeTabs[i];
 			Matcher m = p.matcher(c);
 
@@ -133,18 +135,16 @@ public class SketchParser
     				// consider this as a float
         			String name = varPrefix + "_float[" + floatVarCount +"]";
         			int decimalDigits = getNumDigitsAfterPoint(value);
-        			numbers.add(new Handle("float", name, floatVarCount, value, i, line, start, end, decimalDigits));
+        			allHandles[i].add(new Handle("float", name, floatVarCount, value, i, line, start, end, decimalDigits));
     				floatVarCount++;
     			} else {
     				// consider this as an int
         			String name = varPrefix + "_int[" + intVarCount +"]";
-        			numbers.add(new Handle("int", name, intVarCount, value, i, line, start, end, 0));
+        			allHandles[i].add(new Handle("int", name, intVarCount, value, i, line, start, end, 0));
     				intVarCount++;
     			}    			
     		}
     	}
-
-    	return numbers;
     }
 	
 	/**
@@ -152,17 +152,15 @@ public class SketchParser
 	 * @return
 	 * list of all hexadecimal numbers in the sketch
 	 */
-	private ArrayList<Handle> findAllHexNumbers()
+	private void findAllHexNumbers()
 	{
-		ArrayList<Handle> numbers = new ArrayList<Handle>();
-
 		/* for every number found:
 		 * save its type (int/float), name, value and position in code.
 		 */
+		Pattern p = Pattern.compile("[\\[\\{<>(),\\t\\s\\+\\-\\/\\*^%!|&=?:~]0x[A-Fa-f0-9]+");
 		for (int i=0; i<codeTabs.length; i++)
 		{
 			String c = codeTabs[i];
-			Pattern p = Pattern.compile("[\\[\\{<>(),\\t\\s\\+\\-\\/\\*^%!|&=?:~]0x[A-Fa-f0-9]+");
 			Matcher m = p.matcher(c);
         
 			while (m.find())
@@ -203,12 +201,10 @@ public class SketchParser
 					// don't add this number
 					continue;
 				}
-				numbers.add(handle);
+				allHandles[i].add(handle);
 				intVarCount++;
     		}
     	}
-
-    	return numbers;
     }
 
 	/**
@@ -216,14 +212,12 @@ public class SketchParser
 	 * @return
 	 * list of all hexadecimal numbers in the sketch
 	 */
-	private ArrayList<Handle> findAllWebColorNumbers()
+	private void findAllWebColorNumbers()
 	{
-		ArrayList<Handle> numbers = new ArrayList<Handle>();
-
+		Pattern p = Pattern.compile("#[A-Fa-f0-9]{6}");
 		for (int i=0; i<codeTabs.length; i++)
 		{
 			String c = codeTabs[i];
-			Pattern p = Pattern.compile("#[A-Fa-f0-9]{6}");
 			Matcher m = p.matcher(c);
         
 			while (m.find())
@@ -264,12 +258,10 @@ public class SketchParser
 					// don't add this number
 					continue;
 				}
-				numbers.add(handle);
+				allHandles[i].add(handle);
 				intVarCount++;
     		}
     	}
-
-    	return numbers;
     }
 
 	private ArrayList<ColorMode> findAllColorModes()
@@ -309,15 +301,16 @@ public class SketchParser
 		return modes;
 	}
 	
-	private ArrayList<ColorControlBox> createColorBoxes()
+	private void createColorBoxes()
 	{
 		ArrayList<ColorControlBox> ccbs = new ArrayList<ColorControlBox>();
 		
+		// search tab for the functions: 'color', 'fill', 'stroke', 'background', 'tint'
+		Pattern p = Pattern.compile("color\\(|color\\s\\(|fill[\\(\\s]|stroke[\\(\\s]|background[\\(\\s]|tint[\\(\\s]");
 		for (int i=0; i<codeTabs.length; i++)
 		{
+			colorBoxes[i] = new ArrayList<ColorControlBox>();
 			String tab = codeTabs[i];
-			// search tab for the functions: 'color', 'fill', 'stroke', 'background', 'tint'
-			Pattern p = Pattern.compile("color\\(|color\\s\\(|fill[\\(\\s]|stroke[\\(\\s]|background[\\(\\s]|tint[\\(\\s]");
 			Matcher m = p.matcher(tab);
 			
 			while (m.find())
@@ -338,10 +331,9 @@ public class SketchParser
 				}
 
 				// look for handles inside the parenthesis
-				for (Handle handle : allHandles)
+				for (Handle handle : allHandles[i])
 				{
-					if (handle.tabIndex == i &&
-							handle.startChar > openPar &&
+					if (handle.startChar > openPar &&
 							handle.endChar <= closePar) {
 						// we have a match
 						System.out.println("handle match: " + handle.newValue);
@@ -382,18 +374,16 @@ public class SketchParser
 						if (cmode.unrecognizedMode) {
 							// the color mode is unrecognizable add only if is a hex or webcolor
 							if (newCCB.isHex) {
-								ccbs.add(newCCB);
+								colorBoxes[i].add(newCCB);
 							}
 						}
 						else {
-							ccbs.add(newCCB);
+							colorBoxes[i].add(newCCB);
 						}
 					}
 				}
 			}
 		}
-		
-		return ccbs;
 	}
 	
 	private ColorMode getColorModeForContext(String context)
@@ -440,17 +430,19 @@ public class SketchParser
 		/* keep only hex and web color boxes in color calls
 		 * that belong to 'multipleContexts' contexts
 		 */
-		ArrayList<ColorControlBox> toDelete = new ArrayList<ColorControlBox>();
-		for (String context : multipleContexts)
-		{
-			for (ColorControlBox ccb : colorBoxes)
+		for (int i=0; i<codeTabs.length; i++) {
+			ArrayList<ColorControlBox> toDelete = new ArrayList<ColorControlBox>();
+			for (String context : multipleContexts)
 			{
-				if (ccb.drawContext.equals(context) && !ccb.isHex) {
-					toDelete.add(ccb);
+				for (ColorControlBox ccb : colorBoxes[i])
+				{
+					if (ccb.drawContext.equals(context) && !ccb.isHex) {
+						toDelete.add(ccb);
+					}
 				}
 			}
+			colorBoxes[i].removeAll(toDelete);
 		}
-		colorBoxes.removeAll(toDelete);
 	}
 	
 	public ArrayList<Range>[] getAllScientificNotations()
@@ -696,7 +688,6 @@ public class SketchParser
 	
 	public static int getSetupStart(String code)
 	{
-		int pos;
 		Pattern p = Pattern.compile("void[\\s\\t\\r\\n]*setup[\\s\\t]*\\(\\)[\\s\\t\\r\\n]*\\{");
 		Matcher m = p.matcher(code);
 		

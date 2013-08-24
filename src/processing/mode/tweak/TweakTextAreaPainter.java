@@ -61,8 +61,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	protected int horizontalAdjustment = 0;
 	
 	public boolean interactiveMode = false;
-	public ArrayList<Handle> numbers = null;
-	public ArrayList<ColorControlBox> colorBoxes = null;
+	public ArrayList<Handle> handles[];
+	public ArrayList<ColorControlBox> colorBoxes[];
 	
 	public Handle mouseHandle = null;
 	public ColorSelector colorSelector;
@@ -93,20 +93,16 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	{
 		super.paint(gfx);
 
-		if (interactiveMode && numbers!=null)
+		if (interactiveMode && handles!=null)
 		{
+			int currentTab = ta.editor.getSketch().getCurrentCodeIndex();
 			// enable anti-aliasing
 			Graphics2D g2d = (Graphics2D)gfx;
 			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 				RenderingHints.VALUE_ANTIALIAS_ON);
 			
-			for (Handle n : numbers)
+			for (Handle n : handles[currentTab])
 			{
-				// draw only interface points that belong to the current tab
-				if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex()) {
-					continue;
-				}
-
 				// update n position and width, and draw it
 				int lineStartChar = ta.getLineStartOffset(n.line);
 				int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
@@ -118,13 +114,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			}
 			
 			// draw color boxes
-			for (ColorControlBox cBox: colorBoxes)
+			for (ColorControlBox cBox: colorBoxes[currentTab])
 			{
-				// draw only boxes that belong to the current tab
-				if (cBox.getTabIndex() != ta.editor.getSketch().getCurrentCodeIndex()) {
-					continue;
-				}
-				
 				int lineStartChar = ta.getLineStartOffset(cBox.getLine());
 				int x = ta.offsetToX(cBox.getLine(), cBox.getCharIndex() - lineStartChar);
 				int y = ta.lineToY(cBox.getLine()) + fm.getDescent();
@@ -154,9 +145,9 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	}
 	
 	// Update the interface
-	public void updateInterface(ArrayList<Handle> numbers, ArrayList<ColorControlBox> colorBoxes)
+	public void updateInterface(ArrayList<Handle> handles[], ArrayList<ColorControlBox> colorBoxes[])
 	{
-		this.numbers = numbers;
+		this.handles = handles;
 		this.colorBoxes = colorBoxes;
 		
 		initInterfacePositions();
@@ -178,12 +169,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		{
 			String tabCode = ((TweakEditor)ta.editor).baseCode[tab];
 			ta.setText(tabCode);
-			for (Handle n : numbers)
+			for (Handle n : handles[tab])
 			{
-				// handle only interface points in tab 'tab'.
-				if (n.tabIndex != tab)
-					continue;
-				
 				int lineStartChar = ta.getLineStartOffset(n.line);
 				int x = ta.offsetToX(n.line, n.newStartChar - lineStartChar);
 				int end = ta.offsetToX(n.line, n.newEndChar - lineStartChar);
@@ -191,12 +178,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 				n.initInterface(x, y, end-x, fm.getHeight());
 			}
 
-			for (ColorControlBox cBox : colorBoxes)
+			for (ColorControlBox cBox : colorBoxes[tab])
 			{
-				if (cBox.getTabIndex() != tab) {
-					continue;
-				}
-
 				int lineStartChar = ta.getLineStartOffset(cBox.getLine());
 				int x = ta.offsetToX(cBox.getLine(), cBox.getCharIndex() - lineStartChar);
 				int y = ta.lineToY(cBox.getLine()) + fm.getDescent();
@@ -220,11 +203,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		SketchCode sc = ta.editor.getSketch().getCode(currentTab);
 		String code = ((TweakEditor)ta.editor).baseCode[currentTab];
 		
-		for (Handle n : numbers)
+		for (Handle n : handles[currentTab])
 		{
-			if (n.tabIndex != currentTab)
-				continue;
-			
 			int s = n.startChar + charInc;
 			int e = n.endChar + charInc;
 			code = replaceString(code, s, e, n.strNewValue);
@@ -256,12 +236,9 @@ public class TweakTextAreaPainter extends TextAreaPainter
 
 	public void updateCursor(int mouseX, int mouseY)
 	{
-		for (Handle n : numbers)
+		int currentTab = ta.editor.getSketch().getCurrentCodeIndex();
+		for (Handle n : handles[currentTab])
 		{
-			// skip numbers not in the current tag
-			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
-				continue;
-			
 			if (n.pick(mouseX, mouseY))
 			{
 				cursorType = Cursor.W_RESIZE_CURSOR;
@@ -270,13 +247,8 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			}
 		}
 		
-		for (ColorControlBox colorBox : colorBoxes)
+		for (ColorControlBox colorBox : colorBoxes[currentTab])
 		{
-			// skip color box on different tabs
-			if (colorBox.getTabIndex() != ta.editor.getSketch().getCurrentCodeIndex()) {
-				continue;
-			}
-			
 			if (colorBox.pick(mouseX, mouseY))
 			{
 				cursorType = Cursor.HAND_CURSOR;
@@ -300,12 +272,10 @@ public class TweakTextAreaPainter extends TextAreaPainter
 	 */
 	private void showHideColorBoxes(int y)
 	{
+		int currentTab = ta.editor.getSketch().getCurrentCodeIndex();
+		
 		boolean change = false;
-		for (ColorControlBox box : colorBoxes) {
-			if (box.getTabIndex() != ta.editor.getSketch().getCurrentCodeIndex()) {
-				continue;
-			}
-			
+		for (ColorControlBox box : colorBoxes[currentTab]) {
 			if (box.setMouseY(y)) {
 				change = true;
 			}
@@ -343,13 +313,10 @@ public class TweakTextAreaPainter extends TextAreaPainter
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+		int currentTab = ta.editor.getSketch().getCurrentCodeIndex();
 		// check for clicks on number handles
-		for (Handle n : numbers)
+		for (Handle n : handles[currentTab])
 		{
-			// skip numbers not in the current tag
-			if (n.tabIndex != ta.editor.getSketch().getCurrentCodeIndex())
-				continue;
-			
 			if (n.pick(e.getX(), e.getY()))
 			{
 				cursorType = -1;
@@ -362,7 +329,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 		}
 
 		// check for clicks on color boxes
-		for (ColorControlBox box : colorBoxes)
+		for (ColorControlBox box : colorBoxes[currentTab])
 		{
 			if (box.pick(e.getX(), e.getY()))
 			{

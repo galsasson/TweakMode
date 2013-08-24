@@ -124,7 +124,7 @@ public class TweakEditor extends JavaEditor
 		tweakTextArea.startInteractiveMode();
 	}
 
-	public void stopInteractiveMode(ArrayList<Handle> handles)
+	public void stopInteractiveMode(ArrayList<Handle> handles[])
 	{				
 		tweakTextArea.stopInteractiveMode();
 
@@ -195,14 +195,16 @@ public class TweakEditor extends JavaEditor
 		}
 	}
 
-	public void updateInterface(ArrayList<Handle> numbers, ArrayList<ColorControlBox> colorBoxes)
+	public void updateInterface(ArrayList<Handle> handles[], ArrayList<ColorControlBox> colorBoxes[])
 	{
 		// set OSC port of handles
-		for (Handle h : numbers) {
-			h.setOscPort(oscPort);
+		for (int i=0; i<handles.length; i++) {
+			for (Handle h : handles[i]) {
+				h.setOscPort(oscPort);
+			}
 		}
-		
-		tweakTextArea.updateInterface(numbers, colorBoxes);
+
+		tweakTextArea.updateInterface(handles, colorBoxes);
 	}
 
 	/**
@@ -214,13 +216,15 @@ public class TweakEditor extends JavaEditor
 		toolbar.deactivate(TweakToolbar.RUN);
 	}
 	
-	private boolean[] getModifiedTabs(ArrayList<Handle> handles)
+	private boolean[] getModifiedTabs(ArrayList<Handle> handles[])
 	{
-		boolean[] modifiedTabs = new boolean[sketch.getCodeCount()];
+		boolean[] modifiedTabs = new boolean[handles.length];
 		
-		for (Handle h : handles) {
-			if (h.valueChanged()) {
-				modifiedTabs[h.tabIndex] = true;
+		for (int i=0; i<handles.length; i++) {
+			for (Handle h : handles[i]) {
+				if (h.valueChanged()) {
+					modifiedTabs[i] = true;
+				}
 			}
 		}
 		
@@ -245,7 +249,7 @@ public class TweakEditor extends JavaEditor
 		} 
 	}
 	
-	public void initEditorCode(ArrayList<Handle> handles, boolean withSpaces)
+	public void initEditorCode(ArrayList<Handle> handles[], boolean withSpaces)
 	{
 		SketchCode[] sketchCode = sketch.getCode();
 		for (int tab=0; tab<baseCode.length; tab++) {
@@ -253,11 +257,8 @@ public class TweakEditor extends JavaEditor
 				int charInc = 0;
 				String code = baseCode[tab];
 		
-				for (Handle n : handles)
+				for (Handle n : handles[tab])
 				{
-					if (n.tabIndex != tab)
-						continue;
-			
 					int s = n.startChar + charInc;
 					int e = n.endChar + charInc;
 					String newStr = n.strNewValue;
@@ -318,56 +319,46 @@ public class TweakEditor extends JavaEditor
      * Replace all numbers with variables and add code to initialize these variables and handle OSC messages.
      * @param sketch
      * 	the sketch to work on
-     * @param numbers
+     * @param handles
      * 	list of numbers to replace in this sketch
      * @return
      *  true on success
      */
-    public boolean automateSketch(Sketch sketch, ArrayList<Handle> numbers)
+    public boolean automateSketch(Sketch sketch, ArrayList<Handle> handles[])
     {
     	SketchCode[] code = sketch.getCode();
 
     	if (code.length<1)
     		return false;
 
-    	if (numbers.size() == 0)
+    	if (handles.length == 0)
     		return false;
-    	
+
     	int setupStartPos = SketchParser.getSetupStart(baseCode[0]);
     	if (setupStartPos < 0) {
     		return false;
     	}
-    	
-    	System.out.print("Tweak: instrument code... ");
-		
+
 		// Copy current program to interactive program
-		
+
     	/* modify the code below, replace all numbers with their variable names */
     	// loop through all tabs in the current sketch
     	for (int tab=0; tab<code.length; tab++)
     	{
     		int charInc = 0;
 			String c = baseCode[tab];
-			for (Handle n : numbers)
+			for (Handle n : handles[tab])
     		{
-    			// handle only numbers that belong to the current tab
-				// (put numbers list inside SketchCode?)
-    			if (n.tabIndex != tab)
-    				continue;
-
     			// replace number value with a variable
     			c = replaceString(c, n.startChar + charInc, n.endChar + charInc, n.name);
     			charInc += n.name.length() - n.strValue.length();
     		}
 			code[tab].setProgram(c);
     	}
-    	System.out.println("ok");
-    	
-    	System.out.print("Tweak: add header... ");
-    	
+
     	/* add the main header to the code in the first tab */
     	String c = code[0].getProgram();
-    	
+
     	// header contains variable declaration, initialization, and OSC listener function
     	String header;
     	header = "\n\n" +
@@ -375,38 +366,53 @@ public class TweakEditor extends JavaEditor
     		 "/* MODIFIED BY TWEAKMODE */\n" +
 		 	 "/*************************/\n" +
     		 "\n\n";
-    	
+
     	// add needed OSC imports and the global OSC object
     	header += "import oscP5.*;\n";
     	header += "import netP5.*;\n\n";
     	header += "OscP5 tweakmode_oscP5;\n\n";
-    	
+
     	// write a declaration for int and float arrays
-    	header += "int[] tweakmode_int = new int["+howManyInts(numbers)+"];\n";
-    	header += "float[] tweakmode_float = new float["+howManyFloats(numbers)+"];\n\n";
-    	
+    	int numOfInts = howManyInts(handles);
+    	int numOfFloats = howManyFloats(handles);
+    	if (numOfInts > 0) {
+    		header += "int[] tweakmode_int = new int["+numOfInts+"];\n";
+    	}
+    	if (numOfFloats > 0) {
+    		header += "float[] tweakmode_float = new float["+numOfFloats+"];\n\n";
+    	}
+
     	/* add the class for the OSC event handler that will respond to our messages */
     	header += "public class TweakMode_OscHandler {\n" +
     			  "  public void oscEvent(OscMessage msg) {\n" +
-                  "    String type = msg.addrPattern();\n" +
-                  "    if (type.contains(\"/tm_change_int\")) {\n" +
-                  "      int index = msg.get(0).intValue();\n" +
-                  "      int value = msg.get(1).intValue();\n" +    
-                  "      tweakmode_int[index] = value;\n" +
-                  "    }\n" +
-                  "    else if (type.contains(\"/tm_change_float\")) {\n" +
-                  "      int index = msg.get(0).intValue();\n" +
-                  "      float value = msg.get(1).floatValue();\n" +   
-                  "      tweakmode_float[index] = value;\n" +
-                  "    }\n" +
-                  "  }\n" +
+                  "    String type = msg.addrPattern();\n";
+        if (numOfInts > 0) {
+        	header += "    if (type.contains(\"/tm_change_int\")) {\n" +
+                      "      int index = msg.get(0).intValue();\n" +
+                      "      int value = msg.get(1).intValue();\n" +    
+                      "      tweakmode_int[index] = value;\n" +
+                      "    }\n";
+        	if (numOfFloats > 0) {
+        		header += "    else ";
+        	}
+        }
+        if (numOfFloats > 0) {
+            header += "if (type.contains(\"/tm_change_float\")) {\n" +
+                      "      int index = msg.get(0).intValue();\n" +
+                      "      float value = msg.get(1).floatValue();\n" +   
+                      "      tweakmode_float[index] = value;\n" +
+                      "    }\n";
+        }
+        header += "  }\n" +
                   "}\n";
     	header += "TweakMode_OscHandler tweakmode_oscHandler = new TweakMode_OscHandler();\n";
 
     	header += "void tweakmode_initAllVars() {\n";
-    	for (Handle n : numbers)
-    	{
-    		header += "  " + n.name + " = " + n.strValue + ";\n";
+    	for (int i=0; i<handles.length; i++) {
+    		for (Handle n : handles[i])
+    		{
+    			header += "  " + n.name + " = " + n.strValue + ";\n";
+    		}
     	}
     	header += "}\n\n";
     	header += "void tweakmode_initOSC() {\n";
@@ -441,22 +447,26 @@ public class TweakEditor extends JavaEditor
 		return str.substring(0, start) + put + str.substring(end, str.length());
 	}
 	
-	private int howManyInts(ArrayList<Handle> numbers)
+	private int howManyInts(ArrayList<Handle> handles[])
 	{
 		int count = 0;
-		for (Handle n : numbers) {
-			if (n.type == "int" || n.type == "hex" || n.type == "webcolor")
-				count++;
+		for (int i=0; i<handles.length; i++) {
+			for (Handle n : handles[i]) {
+				if (n.type == "int" || n.type == "hex" || n.type == "webcolor")
+					count++;
+			}
 		}
 		return count;
 	}
 
-	private int howManyFloats(ArrayList<Handle> numbers)
+	private int howManyFloats(ArrayList<Handle> handles[])
 	{
 		int count = 0;
-		for (Handle n : numbers) {
-			if (n.type == "float")
-				count++;
+		for (int i=0; i<handles.length; i++) {
+			for (Handle n : handles[i]) {
+				if (n.type == "float")
+					count++;
+			}
 		}
 		return count;
 	}
