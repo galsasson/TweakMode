@@ -423,6 +423,7 @@ public class TweakEditor extends JavaEditor
     	
     	// add call to our initAllVars and initOSC functions from the setup() function.
     	String addToSetup = "\n  tweakmode_initAllVars();\n  tweakmode_initOSC();\n\n";
+    	setupStartPos = SketchParser.getSetupStart(c);
     	c = replaceString(c, setupStartPos, setupStartPos, addToSetup);
 
     	code[0].setProgram(header + c);
