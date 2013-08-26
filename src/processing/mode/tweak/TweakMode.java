@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
+import processing.app.Library;
 import processing.app.RunnerListener;
 import processing.app.Sketch;
 import processing.app.Base;
@@ -119,8 +120,12 @@ public class TweakMode extends JavaMode {
 	{
 		final TweakEditor editor = (TweakEditor)listener;
 		
+		if (!verifyOscP5()) {
+			editor.deactivateRun();
+			return null;
+		}
+		
 		boolean launchInteractive = false;
-		System.out.println("Running in TweakMode");
 
 		if (isSketchModified(sketch)) {
 			editor.deactivateRun();
@@ -174,6 +179,21 @@ public class TweakMode extends JavaMode {
 		}
         
 		return null;    	
+	}
+	
+	private boolean verifyOscP5()
+	{
+		for (Library l : contribLibraries) {
+			if (l.getName().equals("oscP5")) {
+				return true;
+			}
+		}
+		
+		// could not find oscP5 library
+		Base.showWarning("Tweak Mode", "Tweak Mode needs the 'oscP5' library.\n"
+				+ "Please install this library by clicking \"Sketch --> Import Library --> Add Library ...\" and choose 'ocsP5'", null);
+		
+		return false;
 	}
 
 	private boolean isSketchModified(Sketch sketch)
