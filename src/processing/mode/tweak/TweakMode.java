@@ -118,7 +118,19 @@ public class TweakMode extends JavaMode {
 	@Override
 	public Runner handleRun(Sketch sketch, RunnerListener listener) throws SketchException 
 	{
+		return handlePresentOrRun(sketch, listener, false);
+	}
+	
+	@Override
+	public Runner handlePresent(Sketch sketch, RunnerListener listener) throws SketchException
+	{
+		return handlePresentOrRun(sketch, listener, true);
+	}
+	
+	public Runner handlePresentOrRun(Sketch sketch, RunnerListener listener, boolean present) throws SketchException 
+	{
 		final TweakEditor editor = (TweakEditor)listener;
+		final boolean toPresent = present;
 		
 		if (!verifyOscP5()) {
 			editor.deactivateRun();
@@ -158,7 +170,7 @@ public class TweakMode extends JavaMode {
 			final Runner runtime = new Runner(build, listener);
 			new Thread(new Runnable() {				
 				public void run() {
-					runtime.launch(false);  // this blocks until finished
+					runtime.launch(toPresent);  // this blocks until finished
               
 					// executed when the sketch quits
 					editor.initEditorCode(parser.allHandles, false);
