@@ -22,19 +22,13 @@ popd
 distDir="$projectDir/dist"
 tmpDir="`mktemp -dt tweakmodebuild-XXXXX`"
 
+# copy distribution
 cp -a $distDir/* $tmpDir/
-mkdir $tmpDir/TweakMode/src
 
-file_to_copy=`ls $projectDir`
-for file in $file_to_copy
-do
-	if [ $file != "dist" ]
-	then
-		echo "# CP $file $tmpDir/TweakMode/src"
-		cp -a $file $tmpDir/TweakMode/src
-	fi
-done
+# copy source code
+cp -a $projectDir/src $tmpDir/TweakMode
 
+# pack
 packageName="tweakmode-${VERSION}.zip"
 pushd $tmpDir
 zip -r $distDir/$packageName TweakMode
