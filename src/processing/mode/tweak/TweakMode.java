@@ -56,7 +56,7 @@ public class TweakMode extends JavaMode {
      */
     @Override
     public String getTitle() {
-        return "Tweak";
+        return "tweak";
     }
 
     /**
