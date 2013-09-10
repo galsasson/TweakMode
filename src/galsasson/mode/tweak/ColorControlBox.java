@@ -1,4 +1,4 @@
-package processing.mode.tweak;
+package galsasson.mode.tweak;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

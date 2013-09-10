@@ -1,4 +1,4 @@
-package processing.mode.tweak;
+package galsasson.mode.tweak;
 
 import java.util.ArrayList;
 import java.util.Collections;

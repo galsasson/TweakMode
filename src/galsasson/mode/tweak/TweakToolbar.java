@@ -1,4 +1,4 @@
-package processing.mode.tweak;
+package galsasson.mode.tweak;
 
 import processing.app.Base;
 import processing.app.Editor;

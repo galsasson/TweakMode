@@ -1,4 +1,4 @@
-package processing.mode.tweak;
+package galsasson.mode.tweak;
 
 public class ColorMode {
 	final static int RGB = 0;

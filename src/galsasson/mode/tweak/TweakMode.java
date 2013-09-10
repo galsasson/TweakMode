@@ -1,4 +1,4 @@
-package processing.mode.tweak;
+package galsasson.mode.tweak;
 
 import java.io.File;
 import java.io.IOException;
