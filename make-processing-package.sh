@@ -29,13 +29,16 @@ cp -a $distDir/* $tmpDir/
 cp -a $projectDir/src $tmpDir/TweakMode
 
 # pack
-packageName="tweakmode-${VERSION}.zip"
+packageName="tweakmode.zip"
 pushd $tmpDir
 zip -r $distDir/$packageName TweakMode
 popd
 
-echo "done at: $distDir/$packageName"
+cp $distDir/TweakMode/mode.properties $distDir/tweakmode.txt
 
+echo "done:"
+echo "  $distDir/$packageName"
+echo "  $distDir/tweakmode.txt"
 exit 0
 
 
