@@ -9,6 +9,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.math.BigDecimal;
 import java.util.Comparator;
+import java.util.Locale;
 
 public class Handle {
 	public String type;
@@ -138,23 +139,23 @@ public class Handle {
 	{
 		if (type == "int") {
 			newValue = value.intValue();
-			strNewValue = String.format(textFormat, newValue.intValue());
+			strNewValue = String.format(Locale.US,textFormat, newValue.intValue());
 		}
 		else if (type == "hex") {
 			newValue = value.intValue();
-			strNewValue = String.format(textFormat, newValue.intValue());
+			strNewValue = String.format(Locale.US,textFormat, newValue.intValue());
 		}
 		else if (type == "webcolor") {
 			newValue = value.intValue();
 			// keep only RGB
 			int val = (newValue.intValue() & 0xffffff);
-			strNewValue = String.format(textFormat, val);
+			strNewValue = String.format(Locale.US,textFormat, val);
 		}
 		else if (type == "float") {
 			BigDecimal bd = new BigDecimal(value.floatValue());
 			bd = bd.setScale(decimalPlaces, BigDecimal.ROUND_HALF_UP);
 			newValue = bd.floatValue();
-			strNewValue = String.format(textFormat, newValue.floatValue());			
+			strNewValue = String.format(Locale.US,textFormat, newValue.floatValue());			
 		}
 		
 		// send new data to the server in the sketch
