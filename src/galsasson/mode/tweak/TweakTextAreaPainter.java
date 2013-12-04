@@ -289,7 +289,7 @@ public class TweakTextAreaPainter extends TextAreaPainter
 			repaint();
 		}
 	}
-
+	
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		if (mouseHandle != null) {

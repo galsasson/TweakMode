@@ -24,6 +24,8 @@ public class SketchParser
 	
 	ArrayList<Range> scientificNotations[];
 	
+	ArrayList<HandleModifier> handleModifiers;
+	
 	public SketchParser(String[] codeTabs, boolean requiresComment)
 	{
 		this.codeTabs = codeTabs;
@@ -48,6 +50,8 @@ public class SketchParser
 		 * cannot know which color mode relate to a color.
 		 */
 		handleMultipleColorModes();
+		
+		createHandleModifiers();
 	}
 	
 	public void addAllNumbers()
@@ -231,6 +235,7 @@ public class SketchParser
 			{
 				int start = m.start();
 				int end = m.end();
+				float min=0, max=0;
 
 				if (isInComment(start, codeTabs[i])) {
 					// ignore comments
@@ -552,6 +557,39 @@ public class SketchParser
 		}
 		
 		return notations;
+	}
+	
+	public boolean createHandleModifiers()
+	{
+		handleModifiers = new ArrayList<HandleModifier>();
+		
+		// go through all handles and parse the limits
+		for (int t=0; t<codeTabs.length; t++)
+		{
+			for (Handle h: allHandles[t])
+			{
+				String code = codeTabs[t];
+				int lookFrom = h.endChar;
+				// look for 'tweak[' string
+				Pattern p = Pattern.compile("\\/\\/.*tweak\\s*\\[[\\+\\-]?\\d+\\.?\\d*,[\\+\\-]?\\d+\\.?\\d*\\]");
+				Matcher m = p.matcher(code);
+				if (!m.find(lookFrom)) {
+					return false;
+				}
+				String str = code.substring(m.start(), m.end());
+				int minStart = str.indexOf('[')+1;
+				int minEnd = str.indexOf(',');
+				int maxStart = minEnd+1;
+				int maxEnd = str.length()-1;
+				float min = Float.parseFloat(str.substring(minStart, minEnd));
+				float max = Float.parseFloat(str.substring(maxStart, maxEnd));
+				System.out.println("min = " + min + ", max = " + max);
+				
+				handleModifiers.add(new HandleModifier(h, min, max));
+			}
+		}
+		
+		return true;
 	}
 
 	

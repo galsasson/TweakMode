@@ -194,4 +194,8 @@ public class TweakTextArea extends JEditTextArea {
 		tweakPainter.updateInterface(handles, colorBoxes);
 	}
 	
+	public TweakTextAreaPainter getTweakPainter()
+	{
+		return tweakPainter;
+	}
 }

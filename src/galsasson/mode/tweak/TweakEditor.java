@@ -54,6 +54,7 @@ import processing.app.SketchException;
 import processing.app.syntax.JEditTextArea;
 import processing.app.syntax.PdeTextAreaDefaults;
 import processing.app.syntax.SyntaxDocument;
+import processing.app.syntax.TextAreaPainter;
 import processing.mode.java.JavaBuild;
 import processing.mode.java.JavaEditor;
 import processing.mode.java.JavaToolbar;
@@ -80,6 +81,8 @@ public class TweakEditor extends JavaEditor
 	 */
 	protected TweakTextArea tweakTextArea;
 
+	EvolutionManager evolution;
+	
 	protected TweakEditor(Base base, String path, EditorState state,
 							final Mode mode) {
 		super(base, path, state, mode);
@@ -468,5 +471,22 @@ public class TweakEditor extends JavaEditor
 			}
 		}
 		return count;
+	}
+
+	public void startEvolutionMode(ArrayList<HandleModifier> modifiers)
+	{
+		evolution = new EvolutionManager(modifiers, getTweakPainter(), 10);
+		evolution.initGui();
+	}
+	
+	public void stopEvolutionMode()
+	{
+		evolution.dispose();
+		evolution = null;
+	}
+	
+	public TweakTextAreaPainter getTweakPainter()
+	{
+		return tweakTextArea.getTweakPainter();
 	}
 }

@@ -271,7 +271,7 @@ public class Handle {
 		return type + " " + name + " = " + strValue + 
 				" (tab: " + tabIndex + ", line: " + line + 
 				", start: " + startChar + ", end: " + endChar + ")"; 
-	}
+	}	
 }
 
 /*

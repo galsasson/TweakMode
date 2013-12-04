@@ -156,9 +156,9 @@ public class TweakMode extends JavaMode {
 		/* if compilation passed, modify the code and build again */
 		editor.initBaseCode();
 		// check for "// tweak" comment in the sketch 
-		boolean requiresTweak = SketchParser.containsTweakComment(editor.baseCode);
+		// boolean requiresTweak = SketchParser.containsTweakComment(editor.baseCode);
 		// parse the saved sketch to get all (or only with "//tweak" comment) numbers
-		final SketchParser parser = new SketchParser(editor.baseCode, requiresTweak);
+		final SketchParser parser = new SketchParser(editor.baseCode, true);
 		
 		// add our code to the sketch
 		launchInteractive = editor.automateSketch(sketch, parser.allHandles);
@@ -173,6 +173,7 @@ public class TweakMode extends JavaMode {
 					runtime.launch(toPresent);  // this blocks until finished
               
 					// executed when the sketch quits
+					editor.stopEvolutionMode();
 					editor.initEditorCode(parser.allHandles, false);
 					editor.stopInteractiveMode(parser.allHandles);
 				}
@@ -185,6 +186,7 @@ public class TweakMode extends JavaMode {
 				editor.initEditorCode(parser.allHandles, false);				
 				editor.updateInterface(parser.allHandles, parser.colorBoxes);
 				editor.startInteractiveMode();
+				editor.startEvolutionMode(parser.handleModifiers);
 			}
 
 			return runtime;
