@@ -82,6 +82,9 @@ public class EvolutionGui {
 		PFont font;
 		ArrayList<StateCell> states;
 		
+		Button randomize;
+		Button evolve;
+		
 		public void setup()
 		{
 			size(w, h);
@@ -92,32 +95,42 @@ public class EvolutionGui {
 			catch (Exception e) {}
 			
 			states = new ArrayList<StateCell>();
-			int y=50;
+			int y=30;
 			for (SketchState ss : manager.population)
 			{
 				states.add(new StateCell(ss, 0, y, w, 45,font));
-				y+=50;
+				y+=45;
 			}
+			
+			// create buttons
+			randomize = new Button(0, h-60, w, 25, "Randomize", font);
+			evolve = new Button(0, h-30, w, 25, "Evolve", font);
 		}
 		
 		public void draw()
 		{
 			background(230);
 			
+			
+			// draw heading
 			noStroke();
 			fill(50);
 			textFont(font);
 			textAlign(CENTER, CENTER);
 			text("Code Evolver", w/2, 15);
-			
 			noFill();
 			stroke(50);
 			line(0, 30, w, 30);
 			
+			// draw states
 			for (StateCell sc : states)
 			{
 				sc.draw();
 			}
+			
+			// draw buttons
+			randomize.draw();
+			evolve.draw();
 		}		
 		
 		public void mousePressed()
@@ -132,7 +145,18 @@ public class EvolutionGui {
 					
 					// send the click to this state
 					sc.handleClick(mouseX, mouseY);
+					return;
 				}
+			}
+			
+			if (randomize.contains(mouseX, mouseY)) {
+				manager.randomize();
+				return;
+			}
+			
+			if (evolve.contains(mouseX, mouseY)) {
+				System.out.println("evolve");
+				return;
 			}
 		}
 		
@@ -172,8 +196,11 @@ public class EvolutionGui {
 				translate(pos.x, pos.y);
 				
 				// draw ellipse
-				if (state.id == manager.activeState) {					
+				if (state.id == manager.activeState) {
+					// draw bright background
 					noStroke();
+					fill(255);
+					rect(2, 2, size.x-4, size.y-4);
 					fill(20);
 				}
 				else {
@@ -181,6 +208,11 @@ public class EvolutionGui {
 					stroke(20);
 				}
 				ellipse(10, size.y/4, 8, 8);
+				
+				// draw contour
+				stroke(50);
+				noFill();
+				rect(0, 0, size.x-1, size.y-1);
 
 				noStroke();
 				fill(20);
@@ -192,11 +224,11 @@ public class EvolutionGui {
 				stroke(50);
 				noFill();
 				pushMatrix();
-				translate(28, size.y*3/4);
+				translate(28, size.y*3/4-3);
 				for (int i=0; i<5; i++)
 				{
 					if (state.score > i) {
-						fill(255, 255, 0);
+						fill(245, 171, 22);
 					}
 					else {
 						noFill();
@@ -223,7 +255,7 @@ public class EvolutionGui {
 			public void handleClick(int x, int y)
 			{
 				// check if the user is rating this state
-				PVector p = new PVector(pos.x+20, pos.y+size.y*3/4-8);
+				PVector p = new PVector(pos.x+20, pos.y+size.y*3/4-11);
 				PVector s = new PVector(16, 16);
 				for (int i=0; i<5; i++)
 				{
@@ -235,6 +267,46 @@ public class EvolutionGui {
 					}
 					p.add(22, 0, 0);
 				}
+			}
+		}
+		
+		public class Button
+		{
+			PVector pos;
+			PVector size;
+			String caption;
+			PFont font;
+			
+			public Button(float x, float y, float w, float h, String cap, PFont font)
+			{
+				pos = new PVector(x, y);
+				size = new PVector(w, h);
+				caption = cap;
+				this.font = font;
+			}
+			
+			public void draw()
+			{
+				stroke(50);
+				noFill();
+				rect(pos.x+2, pos.y+2, size.x-4, size.y-4, 3, 3, 3, 3);
+				
+				noStroke();
+				fill(50);
+				textAlign(CENTER, CENTER);
+				textFont(font, 18);
+				text(caption, pos.x+size.x/2, pos.y+size.y/2);
+			}
+			
+			public boolean contains(int x, int y)
+			{
+				if (x>pos.x && x<pos.x+size.x &&
+					y>pos.y && y<pos.y+size.y)
+				{
+					return true;
+				}
+				
+				return false;
 			}
 		}
 	}

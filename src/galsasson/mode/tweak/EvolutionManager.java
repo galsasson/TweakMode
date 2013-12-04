@@ -45,9 +45,18 @@ public class EvolutionManager {
 		for (int i=0; i<populationSize; i++)
 		{
 			SketchState state = new SketchState(modifiers, "State " + Integer.toString(i), i);
-			state.randomize();
 			population.add(state);
 		}		
+	}
+	
+	public void randomize()
+	{
+		for (SketchState ss : population)
+		{
+			ss.randomize();
+		}
+		
+		setState(activeState);
 	}
 	
 	public void setState(int state)

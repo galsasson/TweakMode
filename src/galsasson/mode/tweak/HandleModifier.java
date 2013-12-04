@@ -12,12 +12,13 @@ public class HandleModifier {
 		this.min = min;
 		this.max = max;
 		
-		this.val = min;
+		this.val = handle.value.floatValue();
 	}
 	
 	public void sendVal()
 	{
-		handle.setValue(val);		
+		handle.setValue(val);
+		handle.updateColorBox();
 	}
 	
 	public HandleModifier clone()
