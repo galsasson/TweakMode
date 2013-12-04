@@ -4,11 +4,15 @@ import java.util.ArrayList;
 
 public class SketchState {
 	ArrayList<HandleModifier> modifiers;
+	String name;
 	int score;
+	int id;
 	
-	public SketchState(ArrayList<HandleModifier> modifiers)
+	public SketchState(ArrayList<HandleModifier> modifiers, String name, int id)
 	{
 		this.modifiers = new ArrayList<HandleModifier>();
+		this.name = name;
+		this.id = id;
 		
 		for (HandleModifier hm : modifiers)
 		{

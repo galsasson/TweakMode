@@ -24,9 +24,10 @@ public class EvolutionManager {
 		activeState = 0;
 	}
 	
-	public void initGui()
+	public void initGui(String modeFolder)
 	{
-		gui = new EvolutionGui(this);
+		String dataFolder = modeFolder + "/data";
+		gui = new EvolutionGui(this, dataFolder);
 		gui.frame.addWindowListener(new WindowAdapter() {
 	        public void windowClosing(WindowEvent e) {
 	        	gui.frame.setVisible(false);
@@ -43,7 +44,7 @@ public class EvolutionManager {
 		
 		for (int i=0; i<populationSize; i++)
 		{
-			SketchState state = new SketchState(modifiers);
+			SketchState state = new SketchState(modifiers, "State " + Integer.toString(i), i);
 			state.randomize();
 			population.add(state);
 		}		

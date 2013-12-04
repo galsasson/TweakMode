@@ -26,10 +26,12 @@ import processing.mode.java.runner.Runner;
 public class TweakMode extends JavaMode {
 
 	public boolean dumpModifiedCode;
+	public String modeFolder;
 	
 	public TweakMode(Base base, File folder) 
 	{
 		super(base, folder);
+		modeFolder = folder.toString();
 
 		// needed so that core libraries like opengl, etc. are loaded.
 		for (Mode m : base.getModeList()) {

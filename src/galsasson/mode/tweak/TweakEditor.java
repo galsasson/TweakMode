@@ -475,8 +475,8 @@ public class TweakEditor extends JavaEditor
 
 	public void startEvolutionMode(ArrayList<HandleModifier> modifiers)
 	{
-		evolution = new EvolutionManager(modifiers, getTweakPainter(), 10);
-		evolution.initGui();
+		evolution = new EvolutionManager(modifiers, getTweakPainter(), 5);
+		evolution.initGui(((TweakMode)mode).modeFolder);
 	}
 	
 	public void stopEvolutionMode()
