@@ -21,6 +21,11 @@ public class HandleModifier {
 		handle.updateColorBox();
 	}
 	
+	public void receiveVal()
+	{
+		this.val = handle.newValue.floatValue();
+	}
+	
 	public HandleModifier clone()
 	{
 		return new HandleModifier(handle, min, max);

@@ -140,8 +140,8 @@ public class EvolutionGui {
 				StateCell sc = states.get(i);
 				if (sc.contains(mouseX, mouseY))
 				{
-					// set i as the active state
-					manager.setState(i);
+					// set i as the active state, update the current state
+					manager.setState(i, true);
 					
 					// send the click to this state
 					sc.handleClick(mouseX, mouseY);

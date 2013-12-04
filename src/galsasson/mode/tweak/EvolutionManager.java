@@ -56,13 +56,20 @@ public class EvolutionManager {
 			ss.randomize();
 		}
 		
-		setState(activeState);
+		setState(activeState, false);
 	}
 	
-	public void setState(int state)
+	public void setState(int state, boolean updateCurrent)
 	{
 		if (state < 0 || state>population.size()-1) {
 			return;
+		}
+		
+		// before changing the state, make sure to update the value of the
+		// current state to match the code.
+		// (in case the user manipulated the code handles)
+		if (updateCurrent) {
+			population.get(activeState).receiveValues();
 		}
 		
 		activeState = state;

@@ -36,4 +36,12 @@ public class SketchState {
 			hm.sendVal();
 		}				
 	}
+	
+	public void receiveValues()
+	{
+		for (HandleModifier hm : modifiers)
+		{
+			hm.receiveVal();
+		}
+	}
 }
