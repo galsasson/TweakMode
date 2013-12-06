@@ -12,6 +12,8 @@ public class EvolutionManager {
 	TweakTextAreaPainter painter;
 	EvolutionGui gui;
 	
+	int ids;
+	
 	int activeState;
 
 	public EvolutionManager(ArrayList<HandleModifier> modifiers, TweakTextAreaPainter painter, int size)
@@ -19,9 +21,11 @@ public class EvolutionManager {
 		this.modifiers = modifiers;
 		this.painter = painter;
 		this.populationSize = size;
+		ids = 0;
 		
 		initPopulation();
 		activeState = 0;
+		
 	}
 	
 	public void initGui(String modeFolder)
@@ -44,9 +48,10 @@ public class EvolutionManager {
 		
 		for (int i=0; i<populationSize; i++)
 		{
-			SketchState state = new SketchState(modifiers, "State " + Integer.toString(i), i);
+			SketchState state = new SketchState(modifiers, "State " + Integer.toString(ids), ids);
 			population.add(state);
-		}		
+			ids++;
+		}
 	}
 	
 	public void randomize()
@@ -55,6 +60,17 @@ public class EvolutionManager {
 		{
 			ss.randomize();
 		}
+		
+		setState(activeState, false);
+	}
+	
+	public void randomizeIndex(int index)
+	{
+		if (index<0 || index>=population.size()) {
+			return;
+		}
+		
+		population.get(index).randomize();
 		
 		setState(activeState, false);
 	}
@@ -80,6 +96,55 @@ public class EvolutionManager {
 		// update the code text and repaint
 		painter.updateCodeText();
 		painter.repaint();
+	}
+	
+	
+	public void evolve()
+	{
+		evolveAverage();
+	}
+	
+	public void evolveAverage()
+	{
+		ArrayList<SketchState> selectionPool = new ArrayList<SketchState>();
+		
+		// add states to the pool according to score (fitness)
+		for (SketchState ss : population) {
+			for (int i=0; i<ss.score; i++) {
+				selectionPool.add(ss);
+			}
+		}
+		
+		ArrayList<SketchState> newPopulation = new ArrayList<SketchState>();
+		for (int i=0; i<populationSize; i++)
+		{
+			// randomly select two candidates and mate them
+			
+			// crossover
+			SketchState s1 = selectionPool.get((int)(Math.random()*selectionPool.size()));
+			// avoid mating with oneself
+			SketchState s2;
+			do {
+				s2 = selectionPool.get((int)(Math.random()*selectionPool.size()));				
+			} while(s2.id == s1.id);
+			
+			SketchState newState = s1.crossoverMerge(s2, 0.5f);
+			newState.name = "State " + Integer.toString(ids);
+			newState.id = ids++;
+			
+			// mutation
+			newState.mutate(0.1f, 0.25f);
+			
+			// add to new population
+			newPopulation.add(newState);
+		}
+		
+		// replace the current population
+		population = newPopulation;
+		 
+		// update the gui&code
+		setState(activeState, false);
+		
 	}
 	
 	public void dispose()

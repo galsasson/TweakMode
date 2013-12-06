@@ -77,9 +77,11 @@ public class EvolutionGui {
 
 	public class GuiScreen extends PApplet
 	{
-		int w=150;
-		int h=400;
+		int w=250;
+		int h=500;
 		PFont font;
+		PImage save = null;
+		PImage dice = null;
 		ArrayList<StateCell> states;
 		
 		Button randomize;
@@ -91,20 +93,22 @@ public class EvolutionGui {
 			noFill();
 			try {
 				font = new PFont(new FileInputStream(dataFolder + "/Inconsolata-22.vlw"));
+				save = loadImage(dataFolder + "/save.png");
+				dice = loadImage(dataFolder + "/dice.png");
 			}
 			catch (Exception e) {}
 			
 			states = new ArrayList<StateCell>();
 			int y=30;
-			for (SketchState ss : manager.population)
+			for (int i=0; i<manager.population.size(); i++)
 			{
-				states.add(new StateCell(ss, 0, y, w, 45,font));
+				states.add(new StateCell(i, 0, y, w, 45,font,dice,save));
 				y+=45;
 			}
 			
 			// create buttons
-			randomize = new Button(0, h-60, w, 25, "Randomize", font);
-			evolve = new Button(0, h-30, w, 25, "Evolve", font);
+			randomize = new Button(10, h-60, w-20, 25, "Randomize", font);
+			evolve = new Button(10, h-30, w-20, 25, "Evolve", font);
 		}
 		
 		public void draw()
@@ -131,7 +135,26 @@ public class EvolutionGui {
 			// draw buttons
 			randomize.draw();
 			evolve.draw();
-		}		
+		}
+		
+		/*
+		public void mouseMoved()
+		{
+			for (int i=0; i<states.size(); i++)
+			{
+				if (i==manager.activeState) {
+					sc.mouseMoved(mouseX, mouseY);
+				}
+				else {
+					StateCell sc = states.get(i);
+					if (sc.contains(mouseX, mouseY))
+					{
+						sc.highlight();
+					}
+				}
+			}
+		}
+		*/
 		
 		public void mousePressed()
 		{
@@ -140,11 +163,15 @@ public class EvolutionGui {
 				StateCell sc = states.get(i);
 				if (sc.contains(mouseX, mouseY))
 				{
-					// set i as the active state, update the current state
-					manager.setState(i, true);
-					
-					// send the click to this state
-					sc.handleClick(mouseX, mouseY);
+					if (manager.activeState == i) {
+						// send the click to this state
+						sc.handleClick(mouseX, mouseY);					
+					}
+					else {
+						// set i as the active state, update the current state
+						manager.setState(i, true);
+					}					
+
 					return;
 				}
 			}
@@ -156,6 +183,7 @@ public class EvolutionGui {
 			
 			if (evolve.contains(mouseX, mouseY)) {
 				System.out.println("evolve");
+				manager.evolve();
 				return;
 			}
 		}
@@ -176,27 +204,32 @@ public class EvolutionGui {
 		/* State cell */
 		public class StateCell
 		{
+			int stateIndex;
 			PVector pos;
 			PVector size;
-			SketchState state;
 			PFont font;
-			PShape star;
+			Button random, save;
 			
-			public StateCell(SketchState state, float x, float y, float w, float h, PFont font)
+			
+			public StateCell(int index, float x, float y, float w, float h, 
+					PFont font, PImage dice, PImage saveImg)
 			{
-				this.state = state;
+				stateIndex = index;
 				pos = new PVector(x, y);
 				size = new PVector(w, h);
 				this.font = font;
+				random = new Button(180, size.y/2-12.5f, 25, 25, dice);
+				save = new Button(215, size.y/2-12.5f, 25, 25, saveImg);
 			}
 			
 			public void draw()
 			{
+				SketchState state = manager.population.get(stateIndex);
 				pushMatrix();
 				translate(pos.x, pos.y);
 				
 				// draw ellipse
-				if (state.id == manager.activeState) {
+				if (stateIndex == manager.activeState) {
 					// draw bright background
 					noStroke();
 					fill(255);
@@ -207,7 +240,7 @@ public class EvolutionGui {
 					noFill();
 					stroke(20);
 				}
-				ellipse(10, size.y/4, 8, 8);
+				rect(7, 4, 5, size.y-8, 3, 3, 3, 3);
 				
 				// draw contour
 				stroke(50);
@@ -239,6 +272,9 @@ public class EvolutionGui {
 				}
 				popMatrix();
 				
+				random.draw();
+				save.draw();
+				
 				popMatrix();
 			}
 			
@@ -254,6 +290,11 @@ public class EvolutionGui {
 			
 			public void handleClick(int x, int y)
 			{
+				// check for buttons
+				if (random.contains(x-(int)pos.x, y-(int)pos.y)) {
+					manager.randomizeIndex(stateIndex);
+				}
+				
 				// check if the user is rating this state
 				PVector p = new PVector(pos.x+20, pos.y+size.y*3/4-11);
 				PVector s = new PVector(16, 16);
@@ -263,7 +304,7 @@ public class EvolutionGui {
 						y > p.y && y < p.y + s.y)
 					{
 						// we have a rating
-						state.score = i+1;
+						manager.population.get(stateIndex).score = i+1;
 					}
 					p.add(22, 0, 0);
 				}
@@ -274,8 +315,9 @@ public class EvolutionGui {
 		{
 			PVector pos;
 			PVector size;
-			String caption;
-			PFont font;
+			String caption = null;
+			PFont font = null;
+			PImage img = null;
 			
 			public Button(float x, float y, float w, float h, String cap, PFont font)
 			{
@@ -285,17 +327,33 @@ public class EvolutionGui {
 				this.font = font;
 			}
 			
+			public Button(float x, float y, float w, float h, PImage img)
+			{
+				pos = new PVector(x, y);
+				size = new PVector(w, h);
+				this.img = img;
+			}
+			
 			public void draw()
 			{
-				stroke(50);
-				noFill();
-				rect(pos.x+2, pos.y+2, size.x-4, size.y-4, 3, 3, 3, 3);
-				
-				noStroke();
-				fill(50);
-				textAlign(CENTER, CENTER);
-				textFont(font, 18);
-				text(caption, pos.x+size.x/2, pos.y+size.y/2);
+				if (img!=null) {
+					// image button
+					stroke(50);
+					noFill();
+					rect(pos.x, pos.y, size.x, size.y, 3, 3, 3, 3);
+					image(img, pos.x+2, pos.y+2, size.x-4, size.y-4);
+				}
+				else {
+					stroke(50);
+					noFill();
+					rect(pos.x+2, pos.y+2, size.x-4, size.y-4, 3, 3, 3, 3);
+					
+					noStroke();
+					fill(50);
+					textAlign(CENTER, CENTER);
+					textFont(font, 18);
+					text(caption, pos.x+size.x/2, pos.y+size.y/2);
+				}
 			}
 			
 			public boolean contains(int x, int y)

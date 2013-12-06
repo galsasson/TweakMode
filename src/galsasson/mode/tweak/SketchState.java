@@ -13,7 +13,7 @@ public class SketchState {
 		this.modifiers = new ArrayList<HandleModifier>();
 		this.name = name;
 		this.id = id;
-		
+		score = 1;
 		for (HandleModifier hm : modifiers)
 		{
 			this.modifiers.add(hm.clone());
@@ -42,6 +42,33 @@ public class SketchState {
 		for (HandleModifier hm : modifiers)
 		{
 			hm.receiveVal();
+		}
+	}
+	
+	public SketchState crossoverMerge(SketchState s2, float s2Coeff)
+	{
+		String newName = "s"+id+"+s"+s2.id;
+		SketchState newState = new SketchState(modifiers, newName, id+s2.id);
+		
+		for (int i=0; i<newState.modifiers.size(); i++)
+		{
+			float source = modifiers.get(i).val;
+			float target = s2.modifiers.get(i).val;
+			// merge with s2 value with amount s2Coeff (0: only s1, 1: only s2)
+			newState.modifiers.get(i).interpolateVal(source, target, s2Coeff);
+		}
+		
+		return newState;
+	}
+	
+	public void mutate(float chance, float amount)
+	{
+		for (HandleModifier hm: modifiers)
+		{
+			if (Math.random() < chance)
+			{
+				hm.mutate(amount);
+			}
 		}
 	}
 }
