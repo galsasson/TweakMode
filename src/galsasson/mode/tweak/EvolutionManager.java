@@ -2,9 +2,16 @@ package galsasson.mode.tweak;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.util.ArrayList;
 
+import javax.swing.JFileChooser;
+
+import processing.app.Base;
+import processing.app.Sketch;
+
 public class EvolutionManager {
+	Sketch sketch;
 	ArrayList<HandleModifier> modifiers;
 	ArrayList<SketchState> population;
 	int populationSize;
@@ -16,8 +23,9 @@ public class EvolutionManager {
 	
 	int activeState;
 
-	public EvolutionManager(ArrayList<HandleModifier> modifiers, TweakTextAreaPainter painter, int size)
+	public EvolutionManager(Sketch sketch, ArrayList<HandleModifier> modifiers, TweakTextAreaPainter painter, int size)
 	{
+		this.sketch = sketch;
 		this.modifiers = modifiers;
 		this.painter = painter;
 		this.populationSize = size;
@@ -48,7 +56,7 @@ public class EvolutionManager {
 		
 		for (int i=0; i<populationSize; i++)
 		{
-			SketchState state = new SketchState(modifiers, "State " + Integer.toString(ids), ids);
+			SketchState state = new SketchState(modifiers, ids);
 			population.add(state);
 			ids++;
 		}
@@ -129,7 +137,7 @@ public class EvolutionManager {
 			} while(s2.id == s1.id);
 			
 			SketchState newState = s1.crossoverMerge(s2, 0.5f);
-			newState.name = "State " + Integer.toString(ids);
+			newState.name = "version_" + Integer.toString(ids);
 			newState.id = ids++;
 			
 			// mutation
@@ -145,6 +153,59 @@ public class EvolutionManager {
 		// update the gui&code
 		setState(activeState, false);
 		
+	}
+	
+	public void exportIndex(int index)
+	{
+		if (index<0 || index>=population.size()) {
+			return;
+		}
+		
+		String sketchName = sketch.getName();
+		String versionName = population.get(index).name;
+		
+		// show file chooser for the user to choose a directory
+		final JFileChooser fc = new JFileChooser();
+		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fc.setDialogTitle("Save '" + versionName +"'");
+		int ret = fc.showSaveDialog(gui.frame);
+		
+		if (ret == JFileChooser.APPROVE_OPTION) {
+			try {
+				File targetDir = fc.getSelectedFile();
+				System.out.println("saving in: " + targetDir);
+				
+				// create the target sketch directory
+				String name = sketch.getName() + "_" + versionName;
+				targetDir = new File(targetDir, name);
+				if (!targetDir.mkdir()) {
+					System.out.println("error: cannot create directory: '"+targetDir+"'");
+					return;
+				}
+				
+				// copy the data folder from the sketch (if exists)
+				File targetDataDir = new File(targetDir, "data");
+				if (sketch.getDataFolder().exists()) {
+					Base.copyDir(sketch.getDataFolder(), targetDataDir);
+				}
+				
+				// save all code tabs into files
+				// save the first tab (name should be changed)
+				File dest = new File(targetDir, name + ".pde");
+				Base.saveFile(sketch.getCode(0).getProgram(), dest);
+				
+				// save the rest of the tabs
+				for (int i=1; i<sketch.getCodeCount(); i++)
+				{
+					dest = new File(targetDir, sketch.getCode(i).getFileName());
+					Base.saveFile(sketch.getCode(i).getProgram(), dest);
+				}
+			}
+			catch (Exception ex)
+			{
+				Base.showError("Save failed", "There was an error and the version did not save!", null);
+			}
+		}
 	}
 	
 	public void dispose()

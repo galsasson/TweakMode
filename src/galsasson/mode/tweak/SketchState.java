@@ -8,10 +8,10 @@ public class SketchState {
 	int score;
 	int id;
 	
-	public SketchState(ArrayList<HandleModifier> modifiers, String name, int id)
+	public SketchState(ArrayList<HandleModifier> modifiers, int id)
 	{
 		this.modifiers = new ArrayList<HandleModifier>();
-		this.name = name;
+		this.name = "version_"+Integer.toString(id);
 		this.id = id;
 		score = 1;
 		for (HandleModifier hm : modifiers)
@@ -47,8 +47,7 @@ public class SketchState {
 	
 	public SketchState crossoverMerge(SketchState s2, float s2Coeff)
 	{
-		String newName = "s"+id+"+s"+s2.id;
-		SketchState newState = new SketchState(modifiers, newName, id+s2.id);
+		SketchState newState = new SketchState(modifiers, id+s2.id);
 		
 		for (int i=0; i<newState.modifiers.size(); i++)
 		{

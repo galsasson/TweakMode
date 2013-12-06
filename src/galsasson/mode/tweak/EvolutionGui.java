@@ -1,12 +1,6 @@
 package galsasson.mode.tweak;
 
-import galsasson.mode.tweak.ColorSelector.ColorSelectorBox;
-import galsasson.mode.tweak.ColorSelector.ColorSelectorSlider;
-import galsasson.mode.tweak.ColorSelector.SelectorTopBar;
-
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -17,11 +11,10 @@ import javax.swing.JFrame;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PImage;
-import processing.core.PShape;
 import processing.core.PVector;
 
 public class EvolutionGui {
-	JFrame frame;
+	public JFrame frame;
 	GuiScreen screen;
 	
 	EvolutionManager manager;
@@ -290,9 +283,14 @@ public class EvolutionGui {
 			
 			public void handleClick(int x, int y)
 			{
+				int rx=x-(int)pos.x;
+				int ry=y-(int)pos.y;
 				// check for buttons
-				if (random.contains(x-(int)pos.x, y-(int)pos.y)) {
+				if (random.contains(rx, ry)) {
 					manager.randomizeIndex(stateIndex);
+				}
+				else if (save.contains(rx, ry)) {
+					manager.exportIndex(stateIndex);
 				}
 				
 				// check if the user is rating this state
