@@ -41,7 +41,6 @@ public class EvolutionGui {
 		frame.getContentPane().add(box);
 		frame.pack();
 		frame.setResizable(false);
-//		frame.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 	}
 	
 	public void show(int x, int y)
@@ -95,28 +94,30 @@ public class EvolutionGui {
 			int y=30;
 			for (int i=0; i<manager.population.size(); i++)
 			{
-				states.add(new StateCell(i, 0, y, w, 45,font,dice,save));
-				y+=45;
+				states.add(new StateCell(i, 0, y, w, 50,font,dice,save));
+				y+=49;
 			}
 			
 			// create buttons
-			randomize = new Button(10, h-60, w-20, 25, "Randomize", font);
-			evolve = new Button(10, h-30, w-20, 25, "Evolve", font);
+			randomize = new Button(35, h-70, w-70, 30, "Randomize All", font);
+			evolve = new Button(35, h-35, w-70, 30, "Next Generation", font);
 		}
 		
 		public void draw()
 		{
-			background(230);
+			background(200);
 			
 			
 			// draw heading
 			noStroke();
+			fill(255);
+			rect(0, 0, w, 30);
 			fill(50);
 			textFont(font);
-			textAlign(CENTER, CENTER);
-			text("Code Evolver", w/2, 15);
-			noFill();
+			textAlign(LEFT, CENTER);
+			text("Tweak Panel", 5, 15);
 			stroke(50);
+			strokeWeight(3);
 			line(0, 30, w, 30);
 			
 			// draw states
@@ -175,7 +176,6 @@ public class EvolutionGui {
 			}
 			
 			if (evolve.contains(mouseX, mouseY)) {
-				System.out.println("evolve");
 				manager.evolve();
 				return;
 			}
@@ -220,6 +220,7 @@ public class EvolutionGui {
 				SketchState state = manager.population.get(stateIndex);
 				pushMatrix();
 				translate(pos.x, pos.y);
+				strokeWeight(1);
 				
 				// draw ellipse
 				if (stateIndex == manager.activeState) {
@@ -334,6 +335,8 @@ public class EvolutionGui {
 			
 			public void draw()
 			{
+				strokeWeight(1);
+				
 				if (img!=null) {
 					// image button
 					stroke(50);
@@ -349,7 +352,7 @@ public class EvolutionGui {
 					noStroke();
 					fill(50);
 					textAlign(CENTER, CENTER);
-					textFont(font, 18);
+					textFont(font, 22);
 					text(caption, pos.x+size.x/2, pos.y+size.y/2);
 				}
 			}

@@ -109,6 +109,10 @@ public class EvolutionManager {
 	
 	public void evolve()
 	{
+		// make sure to update the value of the current state to match the code.
+		// (in case the user manipulated the code handles before pressing evolve)
+		population.get(activeState).receiveValues();
+		
 		evolveAverage();
 	}
 	
@@ -167,8 +171,8 @@ public class EvolutionManager {
 		// show file chooser for the user to choose a directory
 		final JFileChooser fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		fc.setDialogTitle("Save '" + versionName +"'");
-		int ret = fc.showSaveDialog(gui.frame);
+		fc.setDialogTitle("Save '" + versionName +"' in");
+		int ret = fc.showOpenDialog(gui.frame);
 		
 		if (ret == JFileChooser.APPROVE_OPTION) {
 			try {
@@ -179,7 +183,7 @@ public class EvolutionManager {
 				String name = sketch.getName() + "_" + versionName;
 				targetDir = new File(targetDir, name);
 				if (!targetDir.mkdir()) {
-					System.out.println("error: cannot create directory: '"+targetDir+"'");
+					Base.showWarning("Save failed", "Cannot create directory "+targetDir+"\nTry saving in a different directory.", null);
 					return;
 				}
 				
@@ -203,7 +207,7 @@ public class EvolutionManager {
 			}
 			catch (Exception ex)
 			{
-				Base.showError("Save failed", "There was an error and the version did not save!", null);
+				Base.showWarning("Save failed", "There was an error and the version did not save!", null);
 			}
 		}
 	}
