@@ -47,8 +47,8 @@ public class HandleModifier {
 	
 	public void mutate(float amount)
 	{
-		float max = val*amount;
-		float d = (float)(Math.random()*max);
+		float maxTrans = val*amount;
+		float d = (float)(Math.random()*maxTrans);
 		if (Math.random()<0.5) {
 			d *= -1;
 		}
