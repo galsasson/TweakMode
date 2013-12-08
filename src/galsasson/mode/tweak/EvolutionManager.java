@@ -11,6 +11,8 @@ import processing.app.Base;
 import processing.app.Sketch;
 
 public class EvolutionManager {
+	final boolean DEBUG = false;
+	
 	Sketch sketch;
 	ArrayList<HandleModifier> modifiers;
 	ArrayList<SketchState> population;
@@ -113,7 +115,101 @@ public class EvolutionManager {
 		// (in case the user manipulated the code handles before pressing evolve)
 		population.get(activeState).receiveValues();
 		
-		evolveAverage();
+//		evolveAverage();
+		evolveTheBest();
+	}
+	
+	public void evolveTheBest()
+	{
+		// pick the best score (multiple if more than one sketch with the same score)
+		ArrayList<SketchState> bestPool = new ArrayList<SketchState>();
+		int maxScore = population.get(0).score;
+		for (SketchState state : population)
+		{
+			if (state.score == maxScore) {
+				bestPool.add(state);
+			}
+			else if (state.score > maxScore) {
+				bestPool.clear();
+				maxScore = state.score;
+				bestPool.add(state);
+			}
+		}
+		
+		if (DEBUG)
+		{
+			System.out.println("best: bestPool size = " + bestPool.size());
+			for (SketchState state : bestPool)
+			{
+				System.out.println("      - " + state.id);
+			}
+		}
+		
+		ArrayList<SketchState> selectionPool = new ArrayList<SketchState>();
+		// add states to the pool according to score (fitness)
+		for (SketchState ss : population) {
+			boolean add = true;
+			// set add to false if sketch state is one of the best
+			for (SketchState best : bestPool) {
+				if (ss == best) {
+					add = false;
+					break;
+				}
+			}
+			
+			if (add) {
+				for (int i=0; i<ss.score; i++) {
+					selectionPool.add(ss);
+				}
+			}
+		}
+		
+		if (DEBUG)
+		{
+			System.out.println("best: selectionPool size = " + selectionPool.size());
+			for (SketchState state : selectionPool)
+			{
+				System.out.println("      - " + state.id);
+			}
+		}
+		
+		// create children for each one of the best scores
+		ArrayList<SketchState> newPopulation = new ArrayList<SketchState>();
+		int nChild=population.size()/bestPool.size();
+		int reminder = population.size()%bestPool.size();
+		for (int i=0; i<bestPool.size(); i++)
+		{
+			// calc how many childs for each best sketch
+			int n = nChild;
+			if (reminder > 0)
+			{
+				n++;
+				reminder--;
+			}
+
+			// mate this best state with a random state
+			SketchState s1 = bestPool.get(i);
+			for (int s=0; s<n; s++)
+			{
+				SketchState s2 = selectionPool.get((int)(Math.random()*selectionPool.size()));
+				// crossover with random interpolation coeff between 0.25-0.75
+				SketchState newState = s1.crossoverMerge(s2, 0.25f+(float)Math.random()*0.5f);
+				newState.name = "version_" + Integer.toString(ids);
+				newState.id = ids++;
+				
+				// mutation
+				newState.mutate(0.1f, 0.25f);
+				
+				// add to new population
+				newPopulation.add(newState);
+			}
+		}
+		
+		// replace the current population
+		population = newPopulation;
+		 
+		// update the gui&code
+		setState(activeState, false);
 	}
 	
 	public void evolveAverage()
@@ -204,6 +300,8 @@ public class EvolutionManager {
 					dest = new File(targetDir, sketch.getCode(i).getFileName());
 					Base.saveFile(sketch.getCode(i).getProgram(), dest);
 				}
+				
+				Base.showMessage("State Saved!", versionName + " was saved in " + targetDir);
 			}
 			catch (Exception ex)
 			{
