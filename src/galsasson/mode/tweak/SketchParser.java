@@ -583,7 +583,6 @@ public class SketchParser
 				int maxEnd = str.length()-1;
 				float min = Float.parseFloat(str.substring(minStart, minEnd));
 				float max = Float.parseFloat(str.substring(maxStart, maxEnd));
-				System.out.println("min = " + min + ", max = " + max);
 				
 				handleModifiers.add(new HandleModifier(h, min, max));
 			}
