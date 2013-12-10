@@ -56,6 +56,7 @@ public class EvolutionGui {
 	
 	public void dispose()
 	{
+		screen.stop();
 //		frame.dispose();
 	}
 	
