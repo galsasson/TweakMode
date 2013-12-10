@@ -110,9 +110,9 @@ public class EvolutionGui {
 			
 			// draw heading
 			noStroke();
-			fill(255);
-			rect(0, 0, w, 30);
 			fill(50);
+			rect(0, 0, w, 30);
+			fill(255);
 			textFont(font);
 			textAlign(LEFT, CENTER);
 			text("Tweak Panel", 5, 15);
