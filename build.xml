@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<project name="TweakMode" default="install" basedir="./">
+<project name="TweakMode_Evolution" default="install" basedir="./">
     <description>Tweak Mode for Processing 2.0+</description>
 
     <!-- name of your mode package (will be used as dir name) -->
-    <property name="lib.name" 	value="TweakMode" />
+    <property name="lib.name" 	value="TweakMode_Evolution" />
 
     <!-- version -->
     <property name="release" 	value="1.0.0" />
