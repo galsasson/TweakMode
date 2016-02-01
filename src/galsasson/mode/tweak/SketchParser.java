@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,8 @@ public class SketchParser
 	final String varPrefix = "tweakmode";
 	
 	String[] codeTabs;
+	int[][] curlyScopeTabs; // see buildCurlyScopeCount() for an explanation. 
+	
 	boolean requiresComment;
 	ArrayList<Handle> allHandles[];
 	ArrayList<ColorMode> colorModes;
@@ -53,12 +56,63 @@ public class SketchParser
 	public void addAllNumbers()
 	{
 		allHandles = new ArrayList[codeTabs.length];
+		
+		buildCurlyScopeCount();
+		
 		addAllDecimalNumbers();
 		addAllHexNumbers();
 		addAllWebColorNumbers();
 		for (int i=0; i<codeTabs.length; i++) {
 			Collections.sort(allHandles[i], new HandleComparator());
 		}		
+	}
+	
+	
+	
+	
+	/**
+	 * Populates the curlyScopeTabs array by iterating through every character in the sketch, 
+	 * keeping track of how many '{' and '}' appear and adjusting curlyScopeCount.
+	 * 
+	 *  curlyScopeTabs is 2dimensional: holding the codeTab number in one dimension and the
+	 *  position of the character in the other dimension. The result is the level of scope at which
+	 *  that character sits in the program.
+	 *  
+	 *  This means that a global variable can be discovered by looking up its position in curlyScopeTabs
+	 *  and checking if its value is 0 (see isGlobal(int, int)).
+	 *  
+	 *  TODO:: This code does not check if '{' or '}' are inside commented areas. This means that if
+	 *  '{' or '}' appear in commented areas the curlyScopeCount WILL NOT BE CORRECT. This should be
+	 *  addressed.
+	 */
+	private void buildCurlyScopeCount()
+	{
+		// NOTE: See the TODO in above comment.
+		
+		int curlyScopeCount = 0;
+		curlyScopeTabs = new int[codeTabs.length][];
+		
+		for(int i=0; i<curlyScopeTabs.length; i++)
+		{
+			String c = codeTabs[i];
+
+			int[] curlyScopeForTab = new int[c.length()];
+			
+			for(int j=0; j < c.length(); j++) 
+			{
+				if(c.charAt(j) == '{') {
+					curlyScopeCount += 1;
+					curlyScopeForTab[j] = curlyScopeCount;
+				}
+				else if(c.charAt(j) == '}') {
+					curlyScopeCount -= 1;
+					curlyScopeForTab[j] = curlyScopeCount;
+				}
+				else
+					curlyScopeForTab[j] = curlyScopeCount;
+			}
+			curlyScopeTabs[i] = curlyScopeForTab;
+		}
 	}
 	
 	/**
@@ -76,6 +130,7 @@ public class SketchParser
 		{
 			allHandles[i] = new ArrayList<Handle>();
 			String c = codeTabs[i];
+						
 			Matcher m = p.matcher(c);
 
 			while (m.find())
@@ -132,7 +187,7 @@ public class SketchParser
 					continue;
 
 				// beware of the global assignment (bug from 26.07.2013)
-				if (isGlobal(m.start(), c))
+				if (isGlobal(i, m.start()))
 					continue;
 
 				int line = countLines(c.substring(0, start)) - 1;			// zero based
@@ -193,9 +248,8 @@ public class SketchParser
 				}
 
 				// beware of the global assignment (bug from 26.07.2013)
-				if (isGlobal(m.start(), c)) {
+				if (isGlobal(i, m.start()))
 					continue;
-				}
 
 				int line = countLines(c.substring(0, start)) - 1;			// zero based
 				String value = c.substring(start, end);
@@ -250,9 +304,8 @@ public class SketchParser
 				}
 
 				// beware of the global assignment (bug from 26.07.2013)
-				if (isGlobal(m.start(), c)) {
+				if (isGlobal(i, m.start()))
 					continue;
-				}
 
 				int line = countLines(c.substring(0, start)) - 1;			// zero based
 				String value = c.substring(start, end);
@@ -659,58 +712,21 @@ public class SketchParser
 		return false;
 	}
 
+	
 	/**
-	* Is this a global position?
-	* @param pos position
-	* @param code code
-	* @return
-	* true if the position 'pos' is in global scope in the code 'code'
+	* Is a character in a global position of the program? Aka, is it a global variable?
+	* @param tabNumber the tab where the character can be found.
+	* @param charPos the position of the character in the tab.
+	* @return true if is a global position.
  	*/
-	private boolean isGlobal(int pos, String code)
+	private boolean isGlobal(int tabNumber, int charPos)
 	{
-		int curlyScope = 0;	// count '{-}'
-
-		for (int c=pos; c>=0; c--)
-		{
-			if (code.charAt(c) == '{') {
-				// check if a function or an array assignment
-				for (int cc=c; cc>=0; cc--) {
-					if (code.charAt(cc)==')') {
-						curlyScope++;
-						break;
-					}
-					else if (code.charAt(cc)==']') {
-						break;
-					}
-					else if (code.charAt(cc)==';') {
-						break;
-					}
-				}
-			}
-			else if (code.charAt(c) == '}') {
-				// check if a function or an array assignment
-				for (int cc=c; cc>=0; cc--) {
-					if (code.charAt(cc)==')') {
-						curlyScope--;
-						break;
-					}
-					else if (code.charAt(cc)==']') {
-						break;
-					}
-					else if (code.charAt(cc)==';') {
-						break;
-					}
-				}
-			}
-		}
-
-		if (curlyScope == 0) {
-			// it is a global position
+		// check c against curlyScopeTabs
+		if(curlyScopeTabs[tabNumber][charPos] == 0)
 			return true;
-		}
-
-		return false;
-	};
+		else
+			return false;
+	}
 	
 	private boolean isInComment(int pos, String code)
 	{
